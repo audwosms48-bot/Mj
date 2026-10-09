@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HSBC</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    background: #fff;
+    color: #1c1c1e;
+    max-width: 430px;
+    margin: 0 auto;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* TOP BAR */
+  .top-bar {
+    padding: 16px 20px 10px;
+    text-align: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .top-bar .back {
+    position: absolute;
+    left: 20px;
+    top: 18px;
+    font-size: 22px;
+    color: #1c1c1e;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .top-bar .share {
+    position: absolute;
+    right: 20px;
+    top: 18px;
+    cursor: pointer;
+  }
+  .top-bar h2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1c1c1e;
+  }
+  .top-bar .balance {
+    font-size: 13px;
+    color: #6c6c70;
+    margin-top: 2px;
+  }
+
+  /* DRAG HANDLE */
+  .drag-handle {
+    width: 36px;
+    height: 4px;
+    background: #d1d1d6;
+    border-radius: 2px;
+    margin: 0 auto 12px;
+    flex-shrink: 0;
+  }
+
+  /* TRANSACTION HEADER */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px 12px;
+    flex-shrink: 0;
+  }
+  .section-header span {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .section-header .search-icon {
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    color: #1c1c1e;
+  }
+
+  /* SCROLLABLE LIST */
+  .tx-list {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tx-list::-webkit-scrollbar { display: none; }
+
+  /* DATE GROUP HEADER */
+  .date-group-header {
+    background: #f2f2f7;
+    padding: 7px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1c1c1e;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  /* TRANSACTION ITEM */
+  .tx-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid #e5e5ea;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .tx-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .tx-name {
+    font-size: 15px;
+    font-weight: 400;
+    color: #1c1c1e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tx-detail {
+    font-size: 13px;
+    color: #8e8e93;
+    margin-top: 2px;
+  }
+  .tx-amount {
+    font-size: 15px;
+    font-weight: 400;
+    color: #1c1c1e;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tx-amount.positive { color: #34c759; font-weight: 500; }
+
+  .tx-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .pending-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #8e8e93;
+    border: 1px solid #d1d1d6;
+    border-radius: 12px;
+    padding: 2px 8px;
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    flex-shrink: 0;
+    display: flex;
+    border-top: 1px solid #e5e5ea;
+    padding: 10px 0 20px;
+    background: #fff;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .nav-item svg { width: 24px; height: 24px; }
+  .nav-item span { font-size: 11px; color: #8e8e93; }
+  .nav-item.active span { color: #c0392b; }
+  .nav-item.active svg { color: #c0392b; }
+
+
+
+  .mm-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 18px;
+    cursor: pointer;
+    background: #fff;
+    gap: 14px;
+  }
+  .mm-item:active { background: #f5f5f5; }
+  .mm-icon {
+    flex-shrink: 0;
+    width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mm-label {
+    flex: 1;
+    font-size: 16px;
+    color: #1c1c1e;
+    font-family: -apple-system, sans-serif;
+  }
+  .mm-chevron { flex-shrink: 0; }
+  .mm-divider { height: 1px; background: #e5e5ea; margin-left: 58px; }
+  .cutoff-msg {
+    padding: 20px;
+    font-size: 13px;
+    color: #8e8e93;
+    text-align: center;
+    line-height: 1.6;
+    border-top: 1px solid #e5e5ea;
+    margin-top: 4px;
+  }
+
+  /* SEARCH SCREEN */
+  #searchScreen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    z-index: 60;
+    max-width: 430px;
+    margin: 0 auto;
+    flex-direction: column;
+  }
+  .search-top {
+    padding: 14px 16px 0;
+    flex-shrink: 0;
+  }
+  .search-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .search-account-title { font-size: 15px; font-weight: 500; color: #1c1c1e; text-align: center; flex: 1; }
+  .search-account-sub { font-size: 13px; color: #6c6c70; text-align: center; }
+  .search-close-btn {
+    font-size: 22px;
+    color: #1c1c1e;
+    cursor: pointer;
+    padding: 4px 8px 4px 0;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .search-bar-wrap {
+    margin: 14px 0 10px;
+    position: relative;
+  }
+  .search-bar-wrap svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8e8e93;
+  }
+  #searchInput {
+    width: 100%;
+    background: #f2f2f7;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 14px 11px 38px;
+    font-size: 16px;
+    font-family: inherit;
+    outline: none;
+    color: #1c1c1e;
+  }
+  .search-divider { height: 1px; background: #e5e5ea; margin: 0; }
+  #searchResults { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  #searchResults::-webkit-scrollbar { display: none; }
+  .search-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #8e8e93;
+    font-size: 15px;
+  }
+
+
+
+  /* PAY SOMEONE / SEND INTERNATIONALLY SCREEN */
+  #paySomeoneScreen, #payToScreen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    z-index: 70;
+    max-width: 430px;
+    margin: 0 auto;
+    flex-direction: column;
+  }
+  .ps-top {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e5ea;
+    flex-shrink: 0;
+  }
+  .ps-back { font-size: 22px; color: #1c1c1e; cursor: pointer; flex-shrink: 0; }
+  .ps-title { flex: 1; text-align: center; font-size: 17px; font-weight: 700; color: #1c1c1e; }
+  .ps-help {
+    width: 28px; height: 28px; border: 1.5px solid #1c1c1e; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: #1c1c1e; cursor: pointer; flex-shrink: 0;
+  }
+  .ps-new-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 20px; border-bottom: 1px solid #e5e5ea; cursor: pointer;
+  }
+  .ps-new-icon {
+    width: 28px; height: 28px; border: 1.5px solid #1c1c1e; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .ps-new-label { font-size: 16px; color: #1c1c1e; }
+  .ps-alpha-header {
+    background: #f2f2f7; padding: 6px 20px;
+    font-size: 13px; font-weight: 600; color: #6c6c70;
+  }
+  .ps-contact-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid #e5e5ea; cursor: pointer;
+  }
+  .ps-contact-name { font-size: 16px; color: #1c1c1e; font-weight: 400; }
+  .ps-contact-sub { font-size: 13px; color: #8e8e93; margin-top: 2px; }
+
+  /* PAYTO SCREEN */
+  .pt-search-wrap { padding: 12px 16px; flex-shrink: 0; }
+  .pt-search-inner { position: relative; }
+  .pt-search-inner svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #8e8e93; }
+  .pt-search-input {
+    width: 100%; background: #f2f2f7; border: none; border-radius: 12px;
+    padding: 10px 14px 10px 36px; font-size: 16px; font-family: inherit; outline: none;
+  }
+  .pt-tabs {
+    display: flex; border-bottom: 1px solid #e5e5ea; flex-shrink: 0;
+  }
+  .pt-tab {
+    flex: 1; text-align: center; padding: 12px;
+    font-size: 15px; color: #8e8e93; cursor: pointer; position: relative;
+  }
+  .pt-tab.active { color: #1c1c1e; font-weight: 500; }
+  .pt-tab.active::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 2px; background: #DB0011;
+  }
+  .pt-empty {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+  }
+  .pt-info-icon {
+    width: 56px; height: 56px; background: #3a5a8a; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pt-empty-text { font-size: 15px; color: #6c6c70; }
+  .pt-get-help {
+    flex-shrink: 0; padding: 16px 20px 32px;
+    border-top: 1px solid #e5e5ea;
+  }
+  .pt-get-help-btn {
+    width: 100%; border: 1.5px solid #1c1c1e; border-radius: 8px;
+    background: #fff; padding: 15px; font-size: 16px;
+    font-family: inherit; cursor: pointer; color: #1c1c1e;
+  }
+  /* FROM SCREEN */
+  #fromScreen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    z-index: 70;
+    max-width: 430px;
+    margin: 0 auto;
+    flex-direction: column;
+  }
+  .from-top {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e5ea;
+    flex-shrink: 0;
+  }
+  .from-back {
+    font-size: 22px;
+    color: #1c1c1e;
+    cursor: pointer;
+    margin-right: 12px;
+  }
+  .from-title {
+    flex: 1;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: #1c1c1e;
+    margin-right: 34px;
+  }
+  .from-search-wrap {
+    padding: 12px 16px;
+    flex-shrink: 0;
+  }
+  .from-search {
+    width: 100%;
+    background: #f2f2f7;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px 10px 36px;
+    font-size: 16px;
+    font-family: inherit;
+    outline: none;
+    color: #1c1c1e;
+    position: relative;
+  }
+  .from-search-wrap-inner {
+    position: relative;
+  }
+  .from-search-wrap-inner svg {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8e8e93;
+  }
+  .from-account-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid #e5e5ea;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .from-account-info {}
+  .from-account-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #1c1c1e;
+  }
+  .from-account-num {
+    font-size: 13px;
+    color: #6c6c70;
+    margin-top: 2px;
+  }
+  .from-account-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .from-account-bal {
+    font-size: 15px;
+    color: #1c1c1e;
+  }
+  .from-radio {
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid #c0c0c0;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  /* SHARE SHEET */
+  #shareOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  #shareOverlay.open { display: flex; }
+  .share-sheet {
+    width: 100%;
+    max-width: 430px;
+    padding: 0 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: slideUp 0.25s ease;
+  }
+  .share-card {
+    background: #f2f2f7;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .share-card-title {
+    font-size: 13px;
+    color: #8e8e93;
+    text-align: center;
+    padding: 12px 16px 10px;
+    border-bottom: 1px solid #dcdcdc;
+  }
+  .share-option {
+    text-align: center;
+    padding: 15px 16px;
+    font-size: 18px;
+    color: #007aff;
+    cursor: pointer;
+    border-bottom: 1px solid #dcdcdc;
+  }
+  .share-option:last-child { border-bottom: none; }
+  .share-option:active { background: #e5e5ea; }
+  .share-cancel {
+    background: #f2f2f7;
+    border-radius: 14px;
+    text-align: center;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #007aff;
+    cursor: pointer;
+  }
+  .share-cancel:active { background: #e5e5ea; }
+
+  .top-bar .acct-number {
+    font-size: 13px;
+    color: #6c6c70;
+    margin-top: 1px;
+    text-decoration: none;
+    pointer-events: none;
+    -webkit-user-select: none;
+  }
+
+  /* ACCOUNTS SCREEN */
+  #accountsScreen {
+    position: fixed;
+    inset: 0;
+    background: #efefef;
+    z-index: 40;
+    max-width: 430px;
+    margin: 0 auto;
+    flex-direction: column;
+    display: flex;
+  }
+  .acc-header {
+    background: #DB0011;
+    padding: 50px 20px 28px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .acc-header-top {
+    position: absolute;
+    top: 0; right: 0;
+    width: 120px; height: 100px;
+    overflow: hidden;
+  }
+  .acc-header-icons {
+    position: absolute;
+    top: 14px; right: 16px;
+    display: flex; gap: 10px;
+  }
+  .acc-icon-btn {
+    width: 42px; height: 42px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative;
+  }
+  .acc-notif-dot {
+    width: 10px; height: 10px;
+    background: #DB0011;
+    border-radius: 50%;
+    position: absolute; top: 8px; right: 8px;
+  }
+  .acc-title {
+    color: #fff;
+    font-size: 30px;
+    font-weight: 700;
+    margin-top: 10px;
+    font-family: -apple-system, sans-serif;
+  }
+  .acc-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .acc-body::-webkit-scrollbar { display: none; }
+  /* Outage banner */
+  .acc-outage {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    position: relative;
+  }
+  .acc-outage-icon {
+    width: 48px; height: 48px;
+    background: #f2f2f7;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .acc-outage-text { flex: 1; }
+  .acc-outage-title { font-size: 15px; font-weight: 600; color: #1c1c1e; margin-bottom: 4px; }
+  .acc-outage-desc { font-size: 13px; color: #6c6c70; line-height: 1.4; }
+  .acc-outage-gotit { color: #DB0011; font-size: 14px; font-weight: 600; text-align: right; cursor: pointer; margin-top: 8px; }
+  .acc-outage-close { position: absolute; top: 14px; right: 14px; font-size: 18px; color: #6c6c70; cursor: pointer; }
+  /* Account card */
+  .acc-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .acc-card:active { opacity: 0.85; }
+  .acc-card-top {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 16px;
+  }
+  .acc-card-icon {
+    width: 44px; height: 44px;
+    background: #f2f2f7;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .acc-card-name { font-size: 16px; font-weight: 500; color: #1c1c1e; }
+  .acc-card-num { font-size: 13px; color: #6c6c70; margin-top: 3px; }
+  .acc-card-row {
+    display: flex; justify-content: space-between;
+    padding: 7px 0;
+  }
+  .acc-card-label { font-size: 15px; color: #1c1c1e; font-weight: 400; }
+  .acc-card-value { font-size: 15px; color: #1c1c1e; font-weight: 400; }
+  /* SPLASH */
+  #splash {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    opacity: 1;
+    transition: opacity 0.7s ease;
+  }
+  #splash.fade-out { opacity: 0; pointer-events: none; }
+  #splash svg { width: 210px; }
+</style>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="HSBC">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#DB0011">
+<link rel="apple-touch-icon" sizes="512x512" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAVz0lEQVR42u3dbXBV9Z3A8d+FEBCDoAPDg0Ecl0GkjKwIrUoLWhXlGZYn251Ra+tMd7rvyruOdrbbmfow25ntTHd23NlufQchPIlBHgoqRq3QIIqAIC7gQBgUFoSAJITcfeXOrptzEkJyc2/O5/PSEzCce/7/3/ecJDe5fD6fDwAgU3o5BQAgAAAAAQAACAAAQAAAAAIAABAAAIAAAAAEAAAgAAAAAQAACAAAQAAAAAIAABAAAIAAAAAEAAAgAABAAAAAAgAAEAAAgAAAAAQAACAAAAABAAAIAABAAAAAAgAAEAAAgAAAAAQAACAAAAABAAAIAABAAACAAAAABAAAIAAAAAEAAAgAAEAAAAACAAAQAACAAAAABAAAIAAAAAEAAAgAAEAAAAACAAAQAACAAAAAAQAACAAAQAAAAAIAABAAAIAAAAAEAAAgAAAAAQAACAAAQAAAAAIAABAAAIAAAAAEAAAgAAAAAQAAAgAAEAAAgAAAAAQAACAAAAABAAAIAABAAAAAAgAAEAAAgAAAAAQAACAAAAABAAAIAABAAAAAAgAABIBTAAACAAAQAACAAAAABAAAIAAAAAEAAAgAAEAAAAACAAAQAACAAAAABAAAIAAAAAEAAAgAAEAAAAACAAAyqcwpoJQcyt3kJFDURuf/y0nAEwDo7MFvc6UUhr9QRQBAF9z1iwBK4c5fBCAAoBOHvwigFIa/CEAAQBcMfxFAKQx/EYAAAAAEAHTG3b+nAJTC3b+nAAgA6ILhLwIoheEvAhAA0IWbpAigmIe/CEAAQBdujiKAYh7+IgABAF24KYoAinn4iwAEAHThZigCKObhLwIQANCFm6AIoBSuJxGAAAAABADu/j0FoKff/XsKgADA8BcBZHT4iwAEAIa/CCCjw18EIAAw/EUAGR3+IgABgOEvAsjo8BcBCAAMfxFAxq8PEYAAwPAXAWT0uhABCAAAQADg7t9TALJyPXgKgADA8BcBZPQ6EAEIAAx/EUBGX38RgADAZiUCyOjrLgIQANikDAMy+nqLAAQANidDgYy+ziIAAYBNyXAgo6+vCEAAAAACAHcj7hLJyuvqKQACAJuQYUFGX08RgADA5mNokNHXUQQgALDpGB5k9PUTAQgAbDaGCBl93UQAAgCbjGFi+Gf09RIBCABsLoaK18k6BQEAAAgA3FW4u/T6WK8IAKcAm4kh43WxbhEAYBMxbLwe1i8CAJsHho7XwTpGAGDTwPBx/q1nBAA2Cwwh5926RgBgkzCMcL6tbwQAACAAcHfgrhTn2TpHAGBTMJxwfq13BAA2A0MK59W6RwBgEzCscD6tfwQAFr+h5TxiH0AAYNEbXs4f9gMEABa7Iea8YV9AAAAAAgCV727W+cL+gACwuDHUnCfsEwgAixrDzfnBfiEAsJgx5JwX7BsCAIsYw875sH8gALB4MfScB/sIAgCLFsPPv99+ggAAAAQAah13wf7d9hUEABYphqHhb39BAGBxktmhaPjbZxAAWJRkbDga/vYbBAAWIxkbkoa/fQcBgEVIxoal4W//QQBg8ZGxoWn424cQAACAAEB109Pvnt39248QAFhsZGyIGv72JQQAFhkZG6aGv/0JAYDFRcaGquFvn0IAYFGRseFq+GO/EgBYTGRsyBr+2LcEABYRGRu2hj/2LwEAAAgA1DM9/a7b3T/2MQGARUPGhq/hj/1MAGCxkLEhbPhjXxMAWCRkLAIMf+xvAgCLg4xFgOGPfU4AYFGQsQgw/LHfCQAsBjIWAYY/9j0BAAAIAFQwPf0pgLt/7H8CABc/GYsAwx/7oADARU/GIsDwx34oAHCxk7EIMPyxLwoAXORkLAIMf+yPAgAXNxmLAMMf+6QAwEVNxiLA8Md+KQAAAAGAmqWnPwVw9499UwDgIiZjEWD4Y/8UALh4yVgEGP7YRwUALloy/iQA7KcCABsrNlawnwoAXLT01OEvArCPCgBcvGT0zl8EYP8UALiIydjwFwHYNwUAACAAULNk5e7fUwDslwIAFzUZHf4iAPukAMDFTUaHvwjA/igAcJGT0eEvArAvCgBc7GR0+IsA7IcCABc9GR3+IgD7oADAxU9Gh78IwP4nAAAAAYAKJit3/54CYN8TAFgMZHT4iwDsdwIAi4KMDn8RgH1OAGBxkNHhLwKwvwkALBIyOvxFAPY1AYDFQkaHvwjAfiYAsGjI+PAVAdjHBAAAIABQz2TlrttTAOxfAgCLiIwOWxGAfUsAYDGR0SErArBfCQAsKjI6XEWAfQoBgMVFRoeqCLA/IQCwyMjoMBUB9iUEABYbGR2iIsB+hAAAAAQAqpus3D17CmAfQgBg8ZHRoSkC7D8IACxCMjosRYB9BwGAxUhGh6QIsN8gALAoyehwFAH2GQQAFicZHYoiwP6CAMAiNfwzOgxFgH0FAQAACADUurtg/37sJwgALFrDz3nAPoIAwOI19JwP7B8IACxiw855wb6BAMBiNuScH+wXCAAsasPNecI+gQDA4jbUnC/sDwgAABAAqHzczTpv9gUEABY7hpjzZz9AAGDRY3g5j/YBBAAWP4aW82n9IwCwCWBYOa/WPQIAm4EhhfNrvSMAsCkYTjjP1jkCAAAQALg7cFeK8219IwCwSRhGOO/WNQIAm4UhhPNvPSMAsGkYPngdrGMEADYPQwevh/WLAMAmYth4XbBuEQDYTAwZr4/1CgIAABAAuKtwd+l1sk4RAGBzMVS8XtYnAgBsMoaJ1826RABAZjcbw9/rZz0iACBjm47h73W0DhEAkLHNx/D3elp/CADI2CZk+IsA6w4BAAAIAOjpdyPu/j0FsN4QAJCxTcnwFwHWGQIAMrY5Gf4iwPpCAEDGNinDXwRYVwgAyNhmZfiLAOsJAQAZ27QMf0rhOjD8EQCIAMOfjF0Phj8CAAAQAHgK4O6fnn5duPtHACACDH8ydn0Y/ggARIDhT8auE8MfAYAIMPzJWAQY/ggARIDhT8YiwPBHACACDH8yFgGGPwIAEWD4k7EIMPwRAACAAMBTAHf/9PSnAO7+EQCIAMOfjEWA4Y8AgE7cDA1/SiECDH8EAHTipmj4UwoRYPgjAKATN0fDn1KIAMMfAQCduEka/pRCBBj+CADoxM3S8KcUIsDwRwAAAAIAruWuyd0/pfAUwN0/AgA6MQIMf0ohAgx/BAB0YgQY/pRCBBj+FLtcPp/POw2U+p0WFGuwggAAAIqGLwEAgAAAAAQAACAAAAABAAAIAABAAAAAAgAAEAAAgAAAAAQAACAAAAABAAAIAABAAAAAAgAAEAAAgAAAAAEAAAgAAEAAAAACAAAQAACAAAAABAAAIAAAAAEAAAgAAEAAAAACAAAQAACAAAAABAAAIAAAAAEAAJlV5hRA4W3ZsiWeeuonqR/Tt2/fqKvbGQMHDizY53XhwoUYO3Zc4vFhw4bFzp3vFfRc1dRsiJ/+9O8Sjz/22NJ48cUXXFTgCQAUv+XLq9r8mMbGxli7dp2TBQgA6AlOnTod27Zta9fHrlixwgkDBAD0BKtWrYrm5uZ2feyePR/Fvn37nTRAAECpW7786u7qPQUABACUuLq6XXHo0KGr+jNr1qyNy5cvO3mAAIBS1ZG7+TNnzsSmTZudPEAAQCm6ePFirF+/PvF4RUVFSjhUOYGAAIBSVFNTEw0NF1o91r9///jVr/4h8c9u3749Tpw44SQCAgBKTdrP/s+cOSMWLJgfN910U6vHW1paorq62kkEBACUksOHD8eOHTsSjy9ZsiTKyspiwYL5iR+zYsXKyOfzTiYgAKBUpH0Nv7KyMu655zv/EwJJjh49Gu+9956TCQgAKAVXrlyJ6upVKXf/iyOXy0VExLhxd8T48d/qUEgACAAoIm+88WacPHmy1WO5XC4WL170jSBIfgpQU7MhGhoanFRAAECxS/vZ/3vvvScqKyv/z3+bP39e9OnTp9WP/+qrr+KVV9Y7qYAAgGJ2+vTp2LLlT4nHFy9e/P/+24033hjTpz+c+Geu9q2EAQQAFNjq1asTf/FPRcX1MXPmjFaPpX0Z4P33349PPvnEyQUEABSrFStWJh6bNWtW9O/fv9Vj06ZNjaFDh3oKAAgAKDW7d++OAwcOJB5fujT5Lr93796xcOHfJB5Pe7IAIACgG6Xdpd96660xefLk1D/f2vcHfO3UqdOxdetWJxkQAFBMLl26FOvWvZJ4fMmSRW3+HaNH/1VMnHhX4nHvCQAIACgyaT+v36tXr1i4cGG7/p60bwZ8/fU34osvvnCyAQEAxSLt8f+UKVNixIgR7fp75s2bG/369Wv1WHNzc+o7DAIIACigzz77LPU9+5csWdzuv6uioiJmzHg08XhVlS8DAAIAiuTuvyrxt/YNGDAgHn30kav6+9K+DHDo0Kfxl7/UOemAAIDu1NLSEtXV1YnH586dk/hIP8mUKfdFZeXNicfT3moYQABAAbz55vY4ceJEh+7mk+RyuVi0KPmnBl599dW4ePGikw8IAOguaXfjbf1YX5r//SuDv6mh4ULU1NQ4+YAAgO5w5syZ2Lx5S+LxtDf2acvIkSPjnnu+k3h8+XLfDAgIAOgWq1atjsuXL7d6rK239m3fU4DkLx/s2LEjDh8+7EUABAAUWlVV8i/+mTr1e6m/3Kc9Zs2aGRUV1yce986AgACAAvvwww9j//79icev5fH/16677rqYPXt24vHq6lVx5coVLwYgAKBQ0r4GP3DgwHjkkemd8v9J+zLAyZMn44033vRiAAIACqGxsTHWrVuXeHzevHlRXl7eKf+vyZMnxW233ZZ43HsCAAIACmTDhtfi3LlziceXLl3cqf+/xYuT3xNgy5Y/xenTp70ogACArpZ21z1mzJi48847O/X/t2jRwujVq/Wl29zcHKtXr+lR5zfpbZWBa1PmFEDHHTt2LN55593E4wcPHoyRI0cVOEiq4umnf9KxO4Je6fcEST/m2JXa+n+29TkDngBAp1u+fEXR3aEeOHAgPvjggw792ba+V6GpqakbAiD9/9m3b18XIggAKJy2fvFPd+roewL07t07ysqSHww2NDQU/EcNz579MvX41f5yJUAAwDWpra2N48fri/JzW7t2XVy6dKlDf/aGG25IPJbP5+Ps2bMF/becOXOmw58vIACg0y1fXrw/cnf+/Pl47bWNHfqzbb1jYX19YaPn2LFj1/T5AgIAOs3Zs2dj06bNRf05dvQ9AUaMGJ56/MiRIwX9dxw5cjT1+PDhw12Q0AF+CgA6YM2atYnfEJfL5WLnzvcKcme6bdvr8cQTT7Z67J133o1jx45FZWXlVf2dY8aMia1btyUe37Pno5gzZ05BznNzc3N8/PHHqR8zduztLkjwBAC6/+560qRJBXssPXXq9xK/Bp7P5zv0zYDjxo1LPV5Xt6tg53nfvn2p38swePDgGDx4sAsSBAB0vT17Poq9e/clHp89e1bBPpeysrLU3zOwcuXKaGlpuaq/89vfnpx6fNeuXanvfNiZtm17/Zo+V0AAQEHu/nO5XMycOaOgn8+sWcnBcfx4fdTW1l7V3zdixIgYPXp04vHm5uaoqdlQkH/bunWvpB6///77XZAgAKDrNTU1xdq1yb/4Z9Kku2PYsGEF/ZzSvgwQkf6bCpPMmPFo6vGXX365y/9dtbVvx6FDhxKPl5WVxUMPPeiiBAEAXW/jxo3x5ZdfduhuvKv06dMnpk9/OPH4pk2bUj/n1ixduiRyuVzi8b1798X69a922b8pn8/H88+/kPoxDz74YAwZMsRFCQIAul7az/53x+P/9oRHU1NTrFmz9qr+vlGjRsX3v/9A6sc8++yzcerUqS7597z00r/F7t27Uz/mqad+5IIEAQBd7/jx+nj77XcSj99998Ru+5n0adOmxoABAxKPd+Q9AZYtW5b6FODUqdPx+ONPxvnz5zv131JTsyF+85vnUj/mu9+dEvfdd6+LEgQAdL2qqqrU76jvjsf/X2vrywAffbQ39ScXWjN+/LfiBz94LPVj9uzZE3PmzG3zZ/Xb48qVK/H73/9L/Oxnf5/6+wb69OkTv/zlsy5IEADQ9fL5fFRVrUw83p2P/9sbIB15CvDMM8/EyJEjUz/m00//M2bMmBW/+MUzcfTo0Q4N/tde2xizZs2O5557vs1fNrRs2c9j7NixLkq4Rrl8sf0uUyhCb71VGz/84d8mHr/77omxdu2abv0cm5qaYsKEu6KhoaHV44MGDYq6up1t/srfbzp48GAsWLCwXT/7n8vlYsKECTFt2tSYMOHOGDVqVAwdOjT69+8fvXv3jsbGxjh37lzU19fHxx8fiLq6uti6dWucOnW6XZ/L/Pnz4ne/++fUL00A7eOtgKEd2npHve58/P+18vLymD794Vi9uvUQ+fr3F8yZM/uq/t4xY8bEH//4H/Hkkz9qMwLy+Xzs3r27zW/g64jp06fHb3/7T4Y/dBJfAoA2nDt3LjZu3Jh61ztz5syi+FzbehfCjrw1cETE5MmTYvXq6ja/HNBVnnji8XjppX+NPn36uCBBAEBhrFmzNhobGxOP33XXX8fNN48ois912rRpUVFRkXj8rbfe6vCv87399ttj8+ZN8dhjSwt2Fz5kyJD4wx/+PX7963+M3r17uxhBAEDhtPXNc4V87/+2lJeXx8MPP5R4vKWlJaqrV3X476+ouD5efPGFqKl5NR544P4uC4FBgwbFsmU/j9ra7an/HqDjfBMgpNi/f39Mn57+trh//vO7RfMEICJi8+bN8eMfP514/JZbbona2u2dMryPHDkSK1ZUxcaNm1Lftrc9+vXrF/fdd2/MnTs3Zs+eFX379nUBggAAit3x4/Wxa1dd7N27Lw4d+jTq6+vj888/jwsXGuLSpcZoaWmJ8vLy6NevXwwcODCGDx8elZU3xx133BHjx4+PiRPvin79+jmRIAAAgK7iewAAQAAAAAIAABAAAIAAAAAEAAAgAAAAAQAACAAAQAAAAAIAABAAAIAAAAAEAAAgAAAAAQAACAAAQAAAgAAAAAQAACAAAAABAAAIAABAAAAAAgAAEAAAgAAAAAQAACAAAAABAAAIAABAAAAAAgAAEAAAgAAAAAEAAAgAAEAAAAACAAAQAACAAAAABAAAIAAAAAEAAAgAAEAAAAACAAAQAACAAAAABAAAIAAAAAEAAAIAABAAAIAAAAAEAAAgAAAAAQAACAAAQAAAAAIAABAAAIAAAAAEAAAgAAAAAQAACAAAQAAAAAIAAAQAACAAAAABAAAIAABAAAAAAgAAEAAAgAAAAAQAACAAAAABAAAIAABAAAAAAgAAEAAAgAAAAAQAACAAAEAAAAACAAAQAACAAAAABAAAIAAAAAEAAAgAAEAAAAACAAAQAACAAAAABAAAIAAAAAEAAAgAAEAAAIAAAAAEAAAgAAAAAQAACAAAQAAAAAIAABAAAIAAAAAEAAAgAAAAAQAAXLv/Bgq+ZrnqY3PBAAAAAElFTkSuQmCC">
+<link rel="manifest" id="manifest-placeholder">
+<script>
+  // Inline manifest for PWA
+  const manifest = {
+    name: "HSBC",
+    short_name: "HSBC",
+    start_url: ".",
+    display: "standalone",
+    background_color: "#ffffff",
+    theme_color: "#DB0011",
+    icons: [{
+      src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyODAgMjgwIj48cmVjdCB3aWR0aD0iMjgwIiBoZWlnaHQ9IjI4MCIgZmlsbD0iI0RCMDAxMSIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQwLDYwKSI+PHBvbHlnb24gcG9pbnRzPSI3MCwwIDE0MCw4MCAxNDAsMTYwIDcwLDE2MCAwLDgwIiBmaWxsPSIjZmZmIi8+PHBvbHlnb24gcG9pbnRzPSI3MCwwIDE0MCwwIDE0MCw4MCIgZmlsbD0iI0RCMDAxMSIvPjxwb2x5Z29uIHBvaW50cz0iMTQwLDAgMjEwLDAgMTQwLDgwIiBmaWxsPSIjREIwMDExIi8+PHBvbHlnb24gcG9pbnRzPSI3MCwxNjAgMTQwLDE2MCAxNDAsODAiIGZpbGw9IiNEQjAwMTEiLz48cG9seWdvbiBwb2ludHM9IjE0MCwxNjAgMjEwLDE2MCAxNDAsODAiIGZpbGw9IiNEQjAwMTEiLz48cG9seWdvbiBwb2ludHM9IjIxMCwwIDI4MCw4MCAyMTAsMTYwIiBmaWxsPSIjZmZmIi8+PHBvbHlnb24gcG9pbnRzPSI3MCwwIDE0MCw4MCA3MCwxNjAiIGZpbGw9IiNmZmYiLz48cG9seWdvbiBwb2ludHM9IjIxMCwwIDE0MCw4MCAyMTAsMTYwIiBmaWxsPSIjZmZmIi8+PC9nPjwvc3ZnPg==",
+      sizes: "512x512",
+      type: "image/svg+xml"
+    }]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  document.getElementById('manifest-placeholder').setAttribute('href', url);
+</script>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="70,0 140,80 70,160 0,80"    fill="#DB0011"/>
+    <polygon points="70,0 140,0 140,80"           fill="#DB0011"/>
+    <polygon points="140,0 210,0 140,80"          fill="#DB0011"/>
+    <polygon points="70,160 140,160 140,80"       fill="#DB0011"/>
+    <polygon points="140,160 210,160 140,80"      fill="#DB0011"/>
+    <polygon points="210,0 280,80 210,160 140,80" fill="#DB0011"/>
+    <polygon points="70,0 140,80 70,160"          fill="#fff"/>
+    <polygon points="210,0 140,80 210,160"        fill="#fff"/>
+  </svg>
+</div>
+
+<div class="top-bar">
+  <span class="back">‹</span>
+  <h2>Day to Day Account</h2>
+  <div class="acct-number"><span>346021&#8203;124045412</span></div>
+  <div class="balance" id="balanceDisplay">229.74 AUD</div>
+  <span class="share" onclick="document.getElementById('shareOverlay').classList.add('open')" style="cursor:pointer;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+    </svg>
+  </span>
+</div>
+
+<div class="drag-handle"></div>
+
+<div class="section-header">
+  <span>Transaction History</span>
+  <svg class="search-icon" onclick="openSearch()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+</div>
+
+<div class="tx-list" id="txList"></div>
+
+
+<div class="bottom-nav">
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    <span>Accounts</span>
+  </div>
+  <div class="nav-item" onclick="showScreen('moveMoney')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    <span>Move Money</span>
+  </div>
+  <div class="nav-item" onclick="showScreen('support')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span>Support</span>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<script>
+
+// Splash screen
+setTimeout(() => {
+  const splash = document.getElementById('splash');
+  splash.classList.add('fade-out');
+  setTimeout(() => splash.remove(), 700);
+}, 1000);
+
+const INITIAL = [
+  { date: "2026-04-09", name: "OPENAI *CHATGPT SUBSCR", detail: "09APR26 ATMA896 12:18:34", amount: -32.14, type: "normal" },
+  { date: "2026-04-09", name: "PLUS500", detail: "09APR26 ATMA896 23:42:39", amount: -300.00, type: "normal" },
+  { date: "2026-04-10", name: "J RODEM PTY LTD", detail: "LIDCOMBE", amount: -11.17, type: "pending" },
+  { date: "2026-04-10", name: "PLUS500", detail: "08APR26 ATMA896 23:00:46", amount: -400.00, type: "normal" },
+  { date: "2026-04-10", name: "TATTS ONLINE PTY LTD", detail: "08APR26 ATMA896 22:03:51", amount: -12.60, type: "normal" },
+  { date: "2026-04-10", name: "NETFLIX.COM\\", detail: "10APR26 043700 02:02:56", amount: -28.99, type: "normal" },
+  // 09 Apr 2026
+  { date: "2026-04-09", name: "TRANSFER", detail: "RTP", amount: 400.00, type: "income" },
+  { date: "2026-04-09", name: "TRANSFER", detail: "RTP", amount: -2888.77, type: "normal" },
+  { date: "2026-04-09", name: "TRANSFER", detail: "00048820225807", amount: 181.64, type: "income" },
+  { date: "2026-04-09", name: "PLUS500", detail: "08APR26 ATMA896 22:30:25", amount: -1500.00, type: "normal" },
+  // 08 Apr 2026
+  { date: "2026-04-09", name: "TRANSFER", detail: "MR MYUNG JAE KIM", amount: 3185.38, type: "income" },
+  // 07 Apr 2026
+  { date: "2026-04-07", name: "SQ *LODE PIES AND PASTRI", detail: "05APR26 ATMA896 07:38:44", amount: -5.75, type: "normal" },
+  { date: "2026-04-07", name: "FACEBK *DPQAJH5M52", detail: "03APR26 ATMA896 10:42:26", amount: -3.30, type: "normal" },
+  { date: "2026-04-07", name: "TATTS ONLINE PTY LTD", detail: "03APR26 ATMA896 07:18:25", amount: -11.90, type: "normal" },
+  // 02 Apr 2026
+  { date: "2026-04-02", name: "TATTS ONLINE PTY LTD", detail: "31MAR26 ATMA896 20:37:37", amount: -1.00, type: "normal" },
+  { date: "2026-04-02", name: "TATTS ONLINE PTY LTD", detail: "31MAR26 ATMA896 20:31:25", amount: -5.85, type: "normal" },
+  // 01 Apr 2026
+  { date: "2026-04-01", name: "TRANSFER", detail: "A00LTUSW0U9H", amount: -210.00, type: "normal" },
+  { date: "2026-04-01", name: "TATTS ONLINE PTY LTD", detail: "30MAR26 ATMA896 20:39:42", amount: -9.50, type: "normal" },
+  // 31 Mar 2026
+  { date: "2026-03-31", name: "TATTS ONLINE PTY LTD", detail: "29MAR26 ATMA896 17:12:57", amount: -4.40, type: "normal" },
+  { date: "2026-03-31", name: "READING CINEMAS", detail: "28MAR26 ATMA896 21:19:17", amount: -8.50, type: "normal" },
+  // 30 Mar 2026
+  { date: "2026-03-30", name: "XERO AU INV-51354259\\", detail: "30MAR26 726163 09:37:21", amount: -6.50, type: "normal" },
+  { date: "2026-03-30", name: "SHOPBACK GIFT CARDS TCLQ", detail: "28MAR26 ATMA896 20:09:21", amount: -18.84, type: "normal" },
+  { date: "2026-03-30", name: "ZLR*CB BAKERY LIDCOMBE", detail: "28MAR26 ATMA896 14:49:55", amount: -7.08, type: "normal" },
+  { date: "2026-03-30", name: "TATTS ONLINE PTY LTD", detail: "26MAR26 ATMA896 19:44:04", amount: -19.00, type: "normal" },
+  { date: "2026-03-30", name: "TATTS ONLINE PTY LTD", detail: "26MAR26 ATMA896 21:28:38", amount: -4.80, type: "normal" },
+  // 26 Mar 2026
+  { date: "2026-03-26", name: "TRANSFER", detail: "Myung Jae", amount: 400.00, type: "income" },
+  // 25 Mar 2026
+  { date: "2026-03-25", name: "TRANSFER", detail: "RTP", amount: -2888.77, type: "normal" },
+  { date: "2026-03-25", name: "TRANSFER", detail: "MR MYUNG JAE KIM", amount: 3185.38, type: "income" },
+  // 24 Mar 2026
+  // 23 Mar 2026
+  { date: "2026-03-23", name: "7 HAIR & BEAUTY PTY L", detail: "21MAR26 ATMA896 17:25:07", amount: -38.57, type: "normal" },
+  { date: "2026-03-23", name: "JW MANAGEMENT GROUP PT", detail: "19MAR26 ATMA896 19:40:36", amount: -17.26, type: "normal" },
+  { date: "2026-03-23", name: "TATTS ONLINE PTY LTD", detail: "19MAR26 ATMA896 16:26:57", amount: -9.50, type: "normal" },
+  { date: "2026-03-23", name: "TATTS ONLINE PTY LTD", detail: "19MAR26 ATMA896 18:56:10", amount: -9.50, type: "normal" },
+  // 20 Mar 2026
+  { date: "2026-03-20", name: "ZETCITI SUPERMRKT RC", detail: "19MAR26 ATMA896 19:51:39", amount: -12.58, type: "normal" },
+  // 19 Mar 2026
+  { date: "2026-03-19", name: "SQ *MONAS BY CHATEAU MON", detail: "18MAR26 ATMA896 17:39:55", amount: -19.30, type: "normal" },
+  { date: "2026-03-19", name: "GOOGLE YOUTUBE MEMBER", detail: "18MAR26 ATMA896 10:02:36", amount: -1.49, type: "normal" },
+  // 18 Mar 2026
+  { date: "2026-03-18", name: "TRANSFER", detail: "RTP", amount: 50.00, type: "income" },
+  { date: "2026-03-18", name: "TATTS ONLINE PTY LTD", detail: "16MAR26 ATMA896 20:23:38", amount: -14.60, type: "normal" },
+  { date: "2026-03-18", name: "TATTS ONLINE PTY LTD", detail: "16MAR26 ATMA896 21:22:06", amount: -8.75, type: "normal" },
+  // 17 Mar 2026
+  { date: "2026-03-17", name: "KMALL09 LIDCOMBE", detail: "14MAR26 ATMA896 18:02:17", amount: -41.32, type: "normal" },
+  // 16 Mar 2026
+  { date: "2026-03-16", name: "TATTS ONLINE PTY LTD", detail: "14MAR26 ATMA896 16:44:45", amount: -5.70, type: "normal" },
+  { date: "2026-03-16", name: "SQ *LODE PIES AND PASTRI", detail: "15MAR26 ATMA896 08:58:17", amount: -18.70, type: "normal" },
+  { date: "2026-03-16", name: "888 LOTTO LIDCOMBE", detail: "14MAR26 ATMA896 17:31:43", amount: -36.50, type: "normal" },
+  { date: "2026-03-16", name: "KMALL 09 LIDCOMBE", detail: "14MAR26 ATMA896 17:44:42", amount: -4.54, type: "normal" },
+  { date: "2026-03-16", name: "PLUS500", detail: "13MAR26 ATMA896 21:41:13", amount: -1500.00, type: "normal" },
+  // 13 Mar 2026
+  { date: "2026-03-13", name: "TRANSFER", detail: "RTP", amount: 1258.96, type: "income" },
+  // 12 Mar 2026
+  { date: "2026-03-12", name: "TRANSFER", detail: "Myung Jae", amount: 400.00, type: "income" },
+  { date: "2026-03-12", name: "SQ *GANGNAM BAKERY", detail: "11MAR26 ATMA896 17:49:32", amount: -83.44, type: "normal" },
+  { date: "2026-03-12", name: "OPENAI *CHATGPT SUBSCR", detail: "11MAR26 ATMA896 13:18:08", amount: -32.14, type: "normal" },
+  // 11 Mar 2026
+  { date: "2026-03-11", name: "NETFLIX.COM", detail: "10MAR26 ATMA896 03:35:45", amount: -28.99, type: "normal" },
+  { date: "2026-03-11", name: "TRANSFER", detail: "RTP", amount: -1000.00, type: "normal" },
+  { date: "2026-03-11", name: "TRANSFER", detail: "RTP", amount: -2888.77, type: "normal" },
+  // 10 Mar 2026
+  // 09 Mar 2026
+  { date: "2026-03-11", name: "TRANSFER", detail: "MR MYUNG JAE KIM", amount: 3185.38, type: "income" },
+  { date: "2026-03-09", name: "TRANSFER", detail: "00048819816048", amount: 181.64, type: "income" },
+  { date: "2026-03-11", name: "TRANSFER", detail: "Youngwhan Kim", amount: 1000.00, type: "income" },
+  // 06 Mar 2026
+  // 05 Mar 2026
+  { date: "2026-03-05", name: "TATTS ONLINE PTY LTD", detail: "03MAR26 ATMA896 19:56:34", amount: -7.30, type: "normal" },
+  // 03 Mar 2026
+  { date: "2026-03-03", name: "EVENT TOP RYDE", detail: "01MAR26 ATMA896 19:32:52", amount: -1.75, type: "normal" },
+  // 02 Mar 2026
+  { date: "2026-03-02", name: "TRANSFER", detail: "A00LHR2H0UPQ", amount: -234.00, type: "normal" },
+  { date: "2026-03-02", name: "TRANSFER", detail: "A00LHR2H0UPP", amount: -7.50, type: "normal" },
+  { date: "2026-03-02", name: "SHOPBACK GIFT CARDS TB7O", detail: "01MAR26 ATMA896 19:31:28", amount: -12.32, type: "normal" },
+  // 27 Feb 2026
+  { date: "2026-02-27", name: "TRANSFER", detail: "RTP", amount: -2888.77, type: "normal" },
+  // 26 Feb 2026
+  { date: "2026-02-26", name: "TRANSFER", detail: "Myung Jae", amount: 400.00, type: "income" },
+  // 25 Feb 2026
+  // 24 Feb 2026
+  { date: "2026-02-24", name: "TRANSFER", detail: "00048819645178", amount: 181.64, type: "income" },
+  // 23 Feb 2026
+  { date: "2026-02-27", name: "TRANSFER", detail: "MR MYUNG JAE KIM", amount: 3185.38, type: "income" },
+  // 20 Feb 2026
+  // 19 Feb 2026
+  { date: "2026-02-19", name: "GOOGLE YOUTUBE MEMBER", detail: "18FEB26 ATMA896 10:02:36", amount: -1.49, type: "normal" },
+  { date: "2026-02-19", name: "TATTS ONLINE PTY LTD", detail: "17FEB26 ATMA896 17:29:44", amount: -8.75, type: "normal" },
+  // 17 Feb 2026
+  { date: "2026-02-17", name: "OPTUS BILLING", detail: "16FEB26 ATMA896 15:52:13", amount: -0.92, type: "normal" },
+  // 16 Feb 2026
+  { date: "2026-02-16", name: "SQ *NOIA COFFEE CO", detail: "15FEB26 ATMA896 13:17:49", amount: -5.50, type: "normal" },
+  { date: "2026-02-16", name: "HAEYOOM PTY LTD", detail: "14FEB26 ATMA896 13:56:20", amount: -25.00, type: "normal" },
+  { date: "2026-02-16", name: "TATTS ONLINE PTY LTD", detail: "12FEB26 ATMA896 13:15:54", amount: -17.65, type: "normal" },
+  { date: "2026-02-16", name: "OFFICEWORKS", detail: "12FEB26 ATMA896 18:05:19", amount: -10.00, type: "normal" },
+  // 13 Feb 2026
+  { date: "2026-02-13", name: "OFFICEWORKS", detail: "12FEB26 ATMA896 16:24:22", amount: -3.50, type: "normal" },
+  // 12 Feb 2026
+  { date: "2026-02-12", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-02-12", name: "OPENAI *CHATGPT SUBSCR", detail: "11FEB26 ATMA896 13:20:18", amount: -32.08, type: "normal" },
+  // 11 Feb 2026
+  { date: "2026-02-11", name: "TRANSFER", detail: "RTP", amount: -2888.77, type: "normal" },
+  { date: "2026-02-11", name: "TRANSFER", detail: "MR MYUNG JAE KIM", amount: 3185.38, type: "income" },
+  { date: "2026-02-11", name: "NETFLIX.COM", detail: "10FEB26 ATMA896 04:02:10", amount: -28.99, type: "normal" },
+  // J RODEM PTY LTD - weekday transactions
+  { date: "2026-02-11", name: "J RODEM PTY LTD", detail: "11FEB26 441737 08:51:16", amount: -24.98, type: "normal" },
+  { date: "2026-02-11", name: "J RODEM PTY LTD", detail: "11FEB26 962512 11:15:12", amount: -24.98, type: "normal" },
+  { date: "2026-02-12", name: "J RODEM PTY LTD", detail: "12FEB26 133326 11:37:27", amount: -14.68, type: "normal" },
+  { date: "2026-02-13", name: "J RODEM PTY LTD", detail: "13FEB26 629903 11:13:14", amount: -14.68, type: "normal" },
+  { date: "2026-02-16", name: "J RODEM PTY LTD", detail: "16FEB26 599370 08:07:18", amount: -14.68, type: "normal" },
+  { date: "2026-02-16", name: "J RODEM PTY LTD", detail: "16FEB26 761285 11:09:35", amount: -14.68, type: "normal" },
+  { date: "2026-02-17", name: "J RODEM PTY LTD", detail: "17FEB26 267414 11:48:51", amount: -14.68, type: "normal" },
+  { date: "2026-02-18", name: "J RODEM PTY LTD", detail: "18FEB26 102544 08:42:32", amount: -21.31, type: "normal" },
+  { date: "2026-02-18", name: "J RODEM PTY LTD", detail: "18FEB26 621299 12:01:53", amount: -18.89, type: "normal" },
+  { date: "2026-02-19", name: "J RODEM PTY LTD", detail: "19FEB26 988662 12:06:22", amount: -24.98, type: "normal" },
+  { date: "2026-02-20", name: "J RODEM PTY LTD", detail: "20FEB26 865179 12:51:02", amount: -21.31, type: "normal" },
+  { date: "2026-02-23", name: "J RODEM PTY LTD", detail: "23FEB26 182627 11:59:24", amount: -24.98, type: "normal" },
+  { date: "2026-02-24", name: "J RODEM PTY LTD", detail: "24FEB26 952864 08:11:50", amount: -14.68, type: "normal" },
+  { date: "2026-02-24", name: "J RODEM PTY LTD", detail: "24FEB26 507427 11:32:53", amount: -24.98, type: "normal" },
+  { date: "2026-02-25", name: "J RODEM PTY LTD", detail: "25FEB26 910620 11:42:14", amount: -14.68, type: "normal" },
+  { date: "2026-02-26", name: "J RODEM PTY LTD", detail: "26FEB26 205907 11:54:14", amount: -18.89, type: "normal" },
+  { date: "2026-02-27", name: "J RODEM PTY LTD", detail: "27FEB26 974628 12:29:40", amount: -24.98, type: "normal" },
+  { date: "2026-03-02", name: "J RODEM PTY LTD", detail: "02MAR26 319684 11:23:22", amount: -14.68, type: "normal" },
+  { date: "2026-03-03", name: "J RODEM PTY LTD", detail: "03MAR26 437098 08:11:21", amount: -14.68, type: "normal" },
+  { date: "2026-03-03", name: "J RODEM PTY LTD", detail: "03MAR26 916546 11:05:35", amount: -24.98, type: "normal" },
+  { date: "2026-03-04", name: "J RODEM PTY LTD", detail: "04MAR26 592478 08:16:34", amount: -14.68, type: "normal" },
+  { date: "2026-03-04", name: "J RODEM PTY LTD", detail: "04MAR26 175374 11:14:12", amount: -18.89, type: "normal" },
+  { date: "2026-03-05", name: "J RODEM PTY LTD", detail: "05MAR26 309853 08:05:54", amount: -21.31, type: "normal" },
+  { date: "2026-03-05", name: "J RODEM PTY LTD", detail: "05MAR26 664915 12:38:45", amount: -21.31, type: "normal" },
+  { date: "2026-03-06", name: "J RODEM PTY LTD", detail: "06MAR26 321231 12:17:04", amount: -24.98, type: "normal" },
+  { date: "2026-03-09", name: "J RODEM PTY LTD", detail: "09MAR26 980265 08:04:06", amount: -18.89, type: "normal" },
+  { date: "2026-03-09", name: "J RODEM PTY LTD", detail: "09MAR26 991021 11:47:21", amount: -24.98, type: "normal" },
+  { date: "2026-03-10", name: "J RODEM PTY LTD", detail: "10MAR26 358607 11:16:08", amount: -21.31, type: "normal" },
+  { date: "2026-03-11", name: "J RODEM PTY LTD", detail: "11MAR26 704912 08:05:06", amount: -18.89, type: "normal" },
+  { date: "2026-03-11", name: "J RODEM PTY LTD", detail: "11MAR26 919533 12:52:05", amount: -21.31, type: "normal" },
+  { date: "2026-03-12", name: "J RODEM PTY LTD", detail: "12MAR26 211648 08:50:34", amount: -24.98, type: "normal" },
+  { date: "2026-03-12", name: "J RODEM PTY LTD", detail: "12MAR26 914577 12:28:40", amount: -14.68, type: "normal" },
+  { date: "2026-03-13", name: "J RODEM PTY LTD", detail: "13MAR26 227381 08:58:35", amount: -18.89, type: "normal" },
+  { date: "2026-03-13", name: "J RODEM PTY LTD", detail: "13MAR26 159133 12:59:33", amount: -21.31, type: "normal" },
+  { date: "2026-03-16", name: "J RODEM PTY LTD", detail: "16MAR26 220116 11:43:46", amount: -24.98, type: "normal" },
+  { date: "2026-03-17", name: "J RODEM PTY LTD", detail: "17MAR26 909260 08:53:53", amount: -14.68, type: "normal" },
+  { date: "2026-03-17", name: "J RODEM PTY LTD", detail: "17MAR26 735009 12:48:37", amount: -24.98, type: "normal" },
+  { date: "2026-03-18", name: "J RODEM PTY LTD", detail: "18MAR26 854639 11:46:56", amount: -21.31, type: "normal" },
+  { date: "2026-03-19", name: "J RODEM PTY LTD", detail: "19MAR26 211579 11:32:58", amount: -18.89, type: "normal" },
+  { date: "2026-03-20", name: "J RODEM PTY LTD", detail: "20MAR26 329805 08:33:15", amount: -14.68, type: "normal" },
+  { date: "2026-03-20", name: "J RODEM PTY LTD", detail: "20MAR26 245063 12:25:47", amount: -14.68, type: "normal" },
+  { date: "2026-03-23", name: "J RODEM PTY LTD", detail: "23MAR26 612340 11:38:20", amount: -14.68, type: "normal" },
+  { date: "2026-03-24", name: "J RODEM PTY LTD", detail: "24MAR26 972064 11:59:23", amount: -24.98, type: "normal" },
+  { date: "2026-03-25", name: "J RODEM PTY LTD", detail: "25MAR26 694916 11:03:15", amount: -14.68, type: "normal" },
+  { date: "2026-03-26", name: "J RODEM PTY LTD", detail: "26MAR26 955662 11:46:31", amount: -14.68, type: "normal" },
+  { date: "2026-03-27", name: "J RODEM PTY LTD", detail: "27MAR26 598369 11:08:42", amount: -21.31, type: "normal" },
+  { date: "2026-03-30", name: "J RODEM PTY LTD", detail: "30MAR26 502997 08:49:51", amount: -21.31, type: "normal" },
+  { date: "2026-03-30", name: "J RODEM PTY LTD", detail: "30MAR26 619896 11:02:03", amount: -21.31, type: "normal" },
+  { date: "2026-03-31", name: "J RODEM PTY LTD", detail: "31MAR26 882066 08:40:02", amount: -14.68, type: "normal" },
+  { date: "2026-03-31", name: "J RODEM PTY LTD", detail: "31MAR26 223624 12:48:27", amount: -24.98, type: "normal" },
+  { date: "2026-04-01", name: "J RODEM PTY LTD", detail: "01APR26 167136 11:15:14", amount: -24.98, type: "normal" },
+  { date: "2026-04-02", name: "J RODEM PTY LTD", detail: "02APR26 341292 11:37:35", amount: -21.31, type: "normal" },
+  { date: "2026-04-07", name: "J RODEM PTY LTD", detail: "07APR26 690159 08:16:32", amount: -24.98, type: "normal" },
+  { date: "2026-04-07", name: "J RODEM PTY LTD", detail: "07APR26 594421 12:03:41", amount: -21.31, type: "normal" },
+  { date: "2026-04-08", name: "J RODEM PTY LTD", detail: "08APR26 392004 11:32:15", amount: -14.68, type: "normal" },
+  { date: "2026-04-09", name: "J RODEM PTY LTD", detail: "09APR26 786312 08:52:44", amount: -18.89, type: "normal" },
+  { date: "2026-04-09", name: "J RODEM PTY LTD", detail: "09APR26 656977 11:09:19", amount: -21.31, type: "normal" },
+  { date: "2026-04-10", name: "J RODEM PTY LTD", detail: "10APR26 790993 11:06:06", amount: -24.98, type: "normal" },
+  { date: "2026-02-11", name: "__CUTOFF__", detail: "", amount: 0, type: "cutoff" },
+  // IREA SERVICE transactions
+  { date: "2026-02-11", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "11FEB26 883279 13:04:41", amount: -24.93, type: "normal" },
+  { date: "2026-02-13", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "13FEB26 315228 12:29:48", amount: -24.53, type: "normal" },
+  { date: "2026-02-16", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "16FEB26 969745 12:39:21", amount: -15.34, type: "normal" },
+  { date: "2026-02-18", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "18FEB26 440555 12:52:19", amount: -23.43, type: "normal" },
+  { date: "2026-02-20", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "20FEB26 590719 12:25:15", amount: -19.15, type: "normal" },
+  { date: "2026-02-23", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "23FEB26 424086 12:21:14", amount: -27.81, type: "normal" },
+  { date: "2026-02-25", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "25FEB26 416396 12:56:13", amount: -29.69, type: "normal" },
+  { date: "2026-03-05", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "05MAR26 535278 13:29:45", amount: -34.02, type: "normal" },
+  { date: "2026-03-06", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "06MAR26 877148 13:14:38", amount: -17.59, type: "normal" },
+  { date: "2026-03-12", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "12MAR26 182691 13:24:57", amount: -20.96, type: "normal" },
+  { date: "2026-03-13", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "13MAR26 373317 13:29:44", amount: -21.97, type: "normal" },
+  { date: "2026-03-16", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "16MAR26 187984 12:34:08", amount: -28.85, type: "normal" },
+  { date: "2026-03-19", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "19MAR26 610485 12:57:31", amount: -16.72, type: "normal" },
+  { date: "2026-03-23", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "23MAR26 472565 12:33:35", amount: -18.0, type: "normal" },
+  { date: "2026-03-25", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "25MAR26 686307 12:28:25", amount: -24.82, type: "normal" },
+  { date: "2026-03-26", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "26MAR26 766469 13:15:11", amount: -21.47, type: "normal" },
+  { date: "2026-03-30", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "30MAR26 767829 12:30:51", amount: -31.76, type: "normal" },
+  { date: "2026-03-31", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "31MAR26 538930 12:45:53", amount: -22.53, type: "normal" },
+  { date: "2026-04-01", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "01APR26 771586 12:45:35", amount: -15.24, type: "normal" },
+  { date: "2026-04-07", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "07APR26 800229 12:45:45", amount: -19.72, type: "normal" },
+  { date: "2026-04-08", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "08APR26 656605 12:41:30", amount: -21.81, type: "normal" },
+  { date: "2026-04-09", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "09APR26 380707 13:07:25", amount: -29.91, type: "normal" },
+  // === NEW TRANSACTIONS FROM SCREENSHOTS ===
+  { date: "2026-04-23", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-04-27", name: "TRANSFER", detail: "RTP", amount: 300.00, type: "income" },
+  { date: "2026-04-30", name: "MAGGIOS RYDE PTY LTD", detail: "28APR26 ATMA896 07:50:17", amount: -37.41, type: "normal" },
+  { date: "2026-05-04", name: "J RODEM PTY LTD", detail: "01MAY26 ATMA896 08:53:04", amount: -5.58, type: "normal" },
+  { date: "2026-05-07", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-05-07", name: "SU & SU PTY LTD", detail: "05MAY26 ATMA896 09:32:50", amount: -8.00, type: "normal" },
+  { date: "2026-05-21", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-05-21", name: "APPLE.COM/BILL", detail: "19MAY26 ATMA896 22:24:59", amount: -33.99, type: "normal" },
+  { date: "2026-05-25", name: "TATTS ONLINE PTY LTD", detail: "24MAY26 ATMA896 06:32:44", amount: -15.20, type: "normal" },
+  { date: "2026-05-25", name: "SQ *LODE PIES AND PASTRI", detail: "24MAY26 ATMA896 14:43:48", amount: -15.00, type: "normal" },
+  { date: "2026-05-25", name: "OPENAI *CHATGPT SUBSCR", detail: "23MAY26 ATMA896 17:18:42", amount: -31.85, type: "normal" },
+  { date: "2026-05-29", name: "J RODEM PTY LTD", detail: "27MAY26 ATMA896 08:29:10", amount: -20.40, type: "normal" },
+  { date: "2026-05-29", name: "UBER *EATS HELP.UBER.COM", detail: "26MAY26 ATMA896 21:14:33", amount: -30.24, type: "normal" },
+  { date: "2026-05-28", name: "JIN YOUNG PTY LTD", detail: "26MAY26 ATMA896 20:43:53", amount: -20.50, type: "normal" },
+  { date: "2026-06-02", name: "TRANSFER", detail: "RTP", amount: 500.00, type: "income" },
+  { date: "2026-06-08", name: "TATTS ONLINE PTY LTD", detail: "06JUN26 ATMA896 12:00:30", amount: -5.75, type: "normal" },
+  { date: "2026-06-08", name: "SQ *NOIA COFFEE CO", detail: "06JUN26 ATMA896 10:44:35", amount: -5.50, type: "normal" },
+  { date: "2026-06-08", name: "J RODEM PTY LTD", detail: "05JUN26 ATMA896 08:49:07", amount: -13.40, type: "normal" },
+  { date: "2026-06-05", name: "YELLOW DAY", detail: "LIDCOMBE", amount: -7.11, type: "pending" },
+  { date: "2026-04-13", name: "J RODEM PTY LTD", detail: "13APR26 527023 12:05:49", amount: -18.89, type: "normal" },
+  { date: "2026-04-14", name: "J RODEM PTY LTD", detail: "14APR26 689633 11:24:34", amount: -18.89, type: "normal" },
+  { date: "2026-04-15", name: "J RODEM PTY LTD", detail: "15APR26 453597 11:10:08", amount: -18.89, type: "normal" },
+  { date: "2026-04-16", name: "J RODEM PTY LTD", detail: "16APR26 911165 08:15:10", amount: -21.31, type: "normal" },
+  { date: "2026-04-16", name: "J RODEM PTY LTD", detail: "16APR26 726628 11:57:27", amount: -24.98, type: "normal" },
+  { date: "2026-04-17", name: "J RODEM PTY LTD", detail: "17APR26 570099 11:20:46", amount: -21.31, type: "normal" },
+  { date: "2026-04-20", name: "J RODEM PTY LTD", detail: "20APR26 232382 11:42:09", amount: -21.31, type: "normal" },
+  { date: "2026-04-21", name: "J RODEM PTY LTD", detail: "21APR26 378209 12:36:30", amount: -24.98, type: "normal" },
+  { date: "2026-04-22", name: "J RODEM PTY LTD", detail: "22APR26 940430 12:21:33", amount: -24.98, type: "normal" },
+  { date: "2026-04-23", name: "J RODEM PTY LTD", detail: "23APR26 906647 12:00:25", amount: -24.98, type: "normal" },
+  { date: "2026-04-24", name: "J RODEM PTY LTD", detail: "24APR26 539873 08:34:40", amount: -18.89, type: "normal" },
+  { date: "2026-04-24", name: "J RODEM PTY LTD", detail: "24APR26 634843 12:33:42", amount: -21.31, type: "normal" },
+  { date: "2026-04-27", name: "J RODEM PTY LTD", detail: "27APR26 790040 08:11:46", amount: -18.89, type: "normal" },
+  { date: "2026-04-27", name: "J RODEM PTY LTD", detail: "27APR26 278390 11:58:31", amount: -18.89, type: "normal" },
+  { date: "2026-04-28", name: "J RODEM PTY LTD", detail: "28APR26 858239 12:56:04", amount: -24.98, type: "normal" },
+  { date: "2026-04-29", name: "J RODEM PTY LTD", detail: "29APR26 714677 12:01:12", amount: -21.31, type: "normal" },
+  { date: "2026-04-30", name: "J RODEM PTY LTD", detail: "30APR26 657839 08:23:00", amount: -21.31, type: "normal" },
+  { date: "2026-04-30", name: "J RODEM PTY LTD", detail: "30APR26 769831 12:14:25", amount: -18.89, type: "normal" },
+  { date: "2026-05-01", name: "J RODEM PTY LTD", detail: "01MAY26 286216 11:34:30", amount: -14.68, type: "normal" },
+  { date: "2026-05-04", name: "J RODEM PTY LTD", detail: "04MAY26 241272 08:28:24", amount: -24.98, type: "normal" },
+  { date: "2026-05-04", name: "J RODEM PTY LTD", detail: "04MAY26 302560 12:02:00", amount: -21.31, type: "normal" },
+  { date: "2026-05-05", name: "J RODEM PTY LTD", detail: "05MAY26 555363 12:43:17", amount: -24.98, type: "normal" },
+  { date: "2026-05-06", name: "J RODEM PTY LTD", detail: "06MAY26 635109 11:39:04", amount: -18.89, type: "normal" },
+  { date: "2026-05-07", name: "J RODEM PTY LTD", detail: "07MAY26 934388 08:05:05", amount: -24.98, type: "normal" },
+  { date: "2026-05-07", name: "J RODEM PTY LTD", detail: "07MAY26 177053 12:57:00", amount: -24.98, type: "normal" },
+  { date: "2026-05-08", name: "J RODEM PTY LTD", detail: "08MAY26 134635 12:16:30", amount: -18.89, type: "normal" },
+  { date: "2026-05-11", name: "J RODEM PTY LTD", detail: "11MAY26 766982 12:01:40", amount: -14.68, type: "normal" },
+  { date: "2026-05-12", name: "J RODEM PTY LTD", detail: "12MAY26 812037 11:45:55", amount: -14.68, type: "normal" },
+  { date: "2026-05-13", name: "J RODEM PTY LTD", detail: "13MAY26 964820 11:47:05", amount: -21.31, type: "normal" },
+  { date: "2026-05-14", name: "J RODEM PTY LTD", detail: "14MAY26 787794 08:24:34", amount: -18.89, type: "normal" },
+  { date: "2026-05-14", name: "J RODEM PTY LTD", detail: "14MAY26 913834 12:09:58", amount: -24.98, type: "normal" },
+  { date: "2026-05-15", name: "J RODEM PTY LTD", detail: "15MAY26 642222 11:34:21", amount: -21.31, type: "normal" },
+  { date: "2026-05-18", name: "J RODEM PTY LTD", detail: "18MAY26 877372 08:10:51", amount: -14.68, type: "normal" },
+  { date: "2026-05-18", name: "J RODEM PTY LTD", detail: "18MAY26 576830 12:27:03", amount: -21.31, type: "normal" },
+  { date: "2026-05-19", name: "J RODEM PTY LTD", detail: "19MAY26 876118 12:55:47", amount: -24.98, type: "normal" },
+  { date: "2026-05-20", name: "J RODEM PTY LTD", detail: "20MAY26 129630 12:50:49", amount: -14.68, type: "normal" },
+  { date: "2026-05-21", name: "J RODEM PTY LTD", detail: "21MAY26 209867 08:20:55", amount: -18.89, type: "normal" },
+  { date: "2026-05-21", name: "J RODEM PTY LTD", detail: "21MAY26 335829 11:21:32", amount: -18.89, type: "normal" },
+  { date: "2026-05-22", name: "J RODEM PTY LTD", detail: "22MAY26 355054 12:59:32", amount: -14.68, type: "normal" },
+  { date: "2026-05-25", name: "J RODEM PTY LTD", detail: "25MAY26 624861 12:25:02", amount: -21.31, type: "normal" },
+  { date: "2026-05-26", name: "J RODEM PTY LTD", detail: "26MAY26 117993 11:48:57", amount: -14.68, type: "normal" },
+  { date: "2026-05-27", name: "J RODEM PTY LTD", detail: "27MAY26 432428 11:05:38", amount: -21.31, type: "normal" },
+  { date: "2026-05-28", name: "J RODEM PTY LTD", detail: "28MAY26 948318 11:59:56", amount: -14.68, type: "normal" },
+  { date: "2026-05-29", name: "J RODEM PTY LTD", detail: "29MAY26 914695 12:46:25", amount: -21.31, type: "normal" },
+  { date: "2026-06-01", name: "J RODEM PTY LTD", detail: "01JUN26 335038 12:21:25", amount: -14.68, type: "normal" },
+  { date: "2026-06-02", name: "J RODEM PTY LTD", detail: "02JUN26 713022 08:40:00", amount: -21.31, type: "normal" },
+  { date: "2026-06-02", name: "J RODEM PTY LTD", detail: "02JUN26 824848 12:21:44", amount: -21.31, type: "normal" },
+  { date: "2026-06-03", name: "J RODEM PTY LTD", detail: "03JUN26 997372 12:23:42", amount: -24.98, type: "normal" },
+  { date: "2026-06-04", name: "J RODEM PTY LTD", detail: "04JUN26 570859 12:13:49", amount: -18.89, type: "normal" },
+  { date: "2026-06-05", name: "J RODEM PTY LTD", detail: "05JUN26 165475 11:24:51", amount: -24.98, type: "normal" },
+  { date: "2026-06-08", name: "J RODEM PTY LTD", detail: "08JUN26 283373 12:53:59", amount: -24.98, type: "normal" },
+  { date: "2026-06-09", name: "J RODEM PTY LTD", detail: "09JUN26 228268 11:58:18", amount: -18.89, type: "normal" },
+  { date: "2026-04-13", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "13APR26 714432 12:48:03", amount: -24.03, type: "normal" },
+  { date: "2026-04-15", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "15APR26 701390 12:13:29", amount: -32.64, type: "normal" },
+  { date: "2026-04-17", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "17APR26 354460 13:30:20", amount: -29.93, type: "normal" },
+  { date: "2026-04-22", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "22APR26 577611 12:31:44", amount: -26.6, type: "normal" },
+  { date: "2026-04-23", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "23APR26 151137 12:35:21", amount: -19.31, type: "normal" },
+  { date: "2026-04-30", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "30APR26 661098 12:16:30", amount: -16.13, type: "normal" },
+  { date: "2026-05-01", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "01MAY26 441669 13:09:09", amount: -35.04, type: "normal" },
+  { date: "2026-05-04", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "04MAY26 730604 12:59:32", amount: -32.84, type: "normal" },
+  { date: "2026-05-08", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "08MAY26 708283 12:36:45", amount: -35.74, type: "normal" },
+  { date: "2026-05-13", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "13MAY26 165678 12:29:44", amount: -35.07, type: "normal" },
+  { date: "2026-05-14", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "14MAY26 536267 12:36:10", amount: -23.32, type: "normal" },
+  { date: "2026-05-18", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "18MAY26 272773 13:03:43", amount: -19.68, type: "normal" },
+  { date: "2026-05-22", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "22MAY26 273988 12:34:33", amount: -32.6, type: "normal" },
+  { date: "2026-05-26", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "26MAY26 396167 12:59:14", amount: -27.21, type: "normal" },
+  { date: "2026-05-27", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "27MAY26 742631 12:13:28", amount: -27.6, type: "normal" },
+  { date: "2026-05-29", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "29MAY26 304785 12:35:51", amount: -27.05, type: "normal" },
+  { date: "2026-06-04", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "04JUN26 163073 12:57:07", amount: -28.17, type: "normal" },
+  { date: "2026-06-05", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "05JUN26 642419 13:23:27", amount: -23.3, type: "normal" },
+  { date: "2026-06-08", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "08JUN26 139381 12:27:15", amount: -20.74, type: "normal" },
+  { date: "2026-06-09", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "09JUN26 523258 12:26:04", amount: -36.34, type: "normal" },
+  { date: "2026-06-09", name: "TRANSFER", detail: "RTP 09JUN26 17:26:00", amount: -800.00, type: "normal" },
+  { date: "2026-06-09", name: "TRANSFER", detail: "RTP 09JUN26 17:25:00", amount: 800.00, type: "income" },
+  { date: "2026-06-09", name: "TRANSFER", detail: "RTP 09JUN26 10:57:00", amount: -800.00, type: "normal" },
+  { date: "2026-06-09", name: "TRANSFER", detail: "RTP 09JUN26 10:56:00", amount: 800.00, type: "income" },
+  // Jun 10 - Jul 16 transactions
+  { date: "2026-06-10", name: "J RODEM PTY LTD", detail: "10JUN26 703464 12:28:23", amount: -18.89, type: "normal" },
+  { date: "2026-06-11", name: "J RODEM PTY LTD", detail: "11JUN26 800428 11:59:28", amount: -24.98, type: "normal" },
+  { date: "2026-06-12", name: "J RODEM PTY LTD", detail: "12JUN26 825571 08:18:56", amount: -21.31, type: "normal" },
+  { date: "2026-06-12", name: "J RODEM PTY LTD", detail: "12JUN26 449332 11:59:07", amount: -21.31, type: "normal" },
+  { date: "2026-06-15", name: "J RODEM PTY LTD", detail: "15JUN26 704827 08:59:58", amount: -18.89, type: "normal" },
+  { date: "2026-06-15", name: "J RODEM PTY LTD", detail: "15JUN26 401115 11:53:41", amount: -18.89, type: "normal" },
+  { date: "2026-06-16", name: "J RODEM PTY LTD", detail: "16JUN26 231709 11:19:32", amount: -24.98, type: "normal" },
+  { date: "2026-06-17", name: "J RODEM PTY LTD", detail: "17JUN26 704628 08:51:02", amount: -21.31, type: "normal" },
+  { date: "2026-06-17", name: "J RODEM PTY LTD", detail: "17JUN26 673163 12:39:09", amount: -18.89, type: "normal" },
+  { date: "2026-06-18", name: "J RODEM PTY LTD", detail: "18JUN26 560490 08:31:06", amount: -18.89, type: "normal" },
+  { date: "2026-06-18", name: "J RODEM PTY LTD", detail: "18JUN26 328827 12:10:00", amount: -24.98, type: "normal" },
+  { date: "2026-06-19", name: "J RODEM PTY LTD", detail: "19JUN26 603494 12:11:51", amount: -21.31, type: "normal" },
+  { date: "2026-06-22", name: "J RODEM PTY LTD", detail: "22JUN26 199160 08:25:56", amount: -14.68, type: "normal" },
+  { date: "2026-06-22", name: "J RODEM PTY LTD", detail: "22JUN26 229904 12:19:12", amount: -21.31, type: "normal" },
+  { date: "2026-06-23", name: "J RODEM PTY LTD", detail: "23JUN26 377553 12:37:56", amount: -18.89, type: "normal" },
+  { date: "2026-06-24", name: "J RODEM PTY LTD", detail: "24JUN26 942385 11:44:07", amount: -24.98, type: "normal" },
+  { date: "2026-06-25", name: "J RODEM PTY LTD", detail: "25JUN26 621935 11:41:42", amount: -24.98, type: "normal" },
+  { date: "2026-06-26", name: "J RODEM PTY LTD", detail: "26JUN26 718104 12:28:21", amount: -18.89, type: "normal" },
+  { date: "2026-06-29", name: "J RODEM PTY LTD", detail: "29JUN26 155993 08:34:38", amount: -18.89, type: "normal" },
+  { date: "2026-06-29", name: "J RODEM PTY LTD", detail: "29JUN26 400451 11:39:51", amount: -24.98, type: "normal" },
+  { date: "2026-06-30", name: "J RODEM PTY LTD", detail: "30JUN26 613956 12:45:42", amount: -24.98, type: "normal" },
+  { date: "2026-07-01", name: "J RODEM PTY LTD", detail: "01JUL26 641554 12:31:22", amount: -24.98, type: "normal" },
+  { date: "2026-07-02", name: "J RODEM PTY LTD", detail: "02JUL26 397140 11:20:05", amount: -18.89, type: "normal" },
+  { date: "2026-07-03", name: "J RODEM PTY LTD", detail: "03JUL26 684174 12:10:57", amount: -24.98, type: "normal" },
+  { date: "2026-07-06", name: "J RODEM PTY LTD", detail: "06JUL26 455714 08:10:05", amount: -21.31, type: "normal" },
+  { date: "2026-07-06", name: "J RODEM PTY LTD", detail: "06JUL26 505339 12:49:04", amount: -14.68, type: "normal" },
+  { date: "2026-07-07", name: "J RODEM PTY LTD", detail: "07JUL26 585221 08:08:41", amount: -24.98, type: "normal" },
+  { date: "2026-07-07", name: "J RODEM PTY LTD", detail: "07JUL26 665485 11:38:18", amount: -24.98, type: "normal" },
+  { date: "2026-07-08", name: "J RODEM PTY LTD", detail: "08JUL26 464947 11:12:58", amount: -14.68, type: "normal" },
+  { date: "2026-07-09", name: "J RODEM PTY LTD", detail: "09JUL26 478429 12:31:47", amount: -18.89, type: "normal" },
+  { date: "2026-07-10", name: "J RODEM PTY LTD", detail: "10JUL26 167131 08:50:03", amount: -18.89, type: "normal" },
+  { date: "2026-07-10", name: "J RODEM PTY LTD", detail: "10JUL26 162791 12:30:16", amount: -18.89, type: "normal" },
+  { date: "2026-07-13", name: "J RODEM PTY LTD", detail: "13JUL26 172876 08:55:33", amount: -21.31, type: "normal" },
+  { date: "2026-07-13", name: "J RODEM PTY LTD", detail: "13JUL26 706802 11:08:39", amount: -14.68, type: "normal" },
+  { date: "2026-07-14", name: "J RODEM PTY LTD", detail: "14JUL26 395624 08:36:58", amount: -24.98, type: "normal" },
+  { date: "2026-07-14", name: "J RODEM PTY LTD", detail: "14JUL26 161184 12:19:12", amount: -18.89, type: "normal" },
+  { date: "2026-07-15", name: "J RODEM PTY LTD", detail: "15JUL26 709729 12:15:49", amount: -24.98, type: "normal" },
+  { date: "2026-07-16", name: "J RODEM PTY LTD", detail: "16JUL26 384773 08:42:40", amount: -24.98, type: "normal" },
+  { date: "2026-07-16", name: "J RODEM PTY LTD", detail: "16JUL26 758030 11:02:55", amount: -18.89, type: "normal" },
+  { date: "2026-06-11", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "11JUN26 248311 12:54:13", amount: -15.65, type: "normal" },
+  { date: "2026-06-12", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "12JUN26 656675 12:31:40", amount: -37.46, type: "normal" },
+  { date: "2026-06-18", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "18JUN26 602302 12:08:28", amount: -23.16, type: "normal" },
+  { date: "2026-06-19", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "19JUN26 687434 12:34:12", amount: -24.58, type: "normal" },
+  { date: "2026-06-25", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "25JUN26 148202 12:58:48", amount: -26.89, type: "normal" },
+  { date: "2026-06-26", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "26JUN26 386515 12:20:40", amount: -21.75, type: "normal" },
+  { date: "2026-06-30", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "30JUN26 282122 12:41:10", amount: -33.32, type: "normal" },
+  { date: "2026-07-01", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "01JUL26 985661 12:41:36", amount: -23.15, type: "normal" },
+  { date: "2026-07-02", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "02JUL26 544411 12:16:11", amount: -25.36, type: "normal" },
+  { date: "2026-07-06", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "06JUL26 647188 12:07:38", amount: -26.19, type: "normal" },
+  { date: "2026-07-07", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "07JUL26 895907 12:41:45", amount: -30.46, type: "normal" },
+  { date: "2026-07-08", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "08JUL26 596421 12:57:51", amount: -29.54, type: "normal" },
+  { date: "2026-07-14", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "14JUL26 820034 12:59:00", amount: -32.58, type: "normal" },
+  { date: "2026-07-15", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "15JUL26 619023 13:27:47", amount: -18.37, type: "normal" },
+  { date: "2026-06-18", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-07-02", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  // Jul 17 - Oct 6 transactions
+  { date: "2026-07-17", name: "J RODEM PTY LTD", detail: "17JUL26 620710 12:37:28", amount: -24.98, type: "normal" },
+  { date: "2026-07-20", name: "J RODEM PTY LTD", detail: "20JUL26 512239 08:23:34", amount: -24.98, type: "normal" },
+  { date: "2026-07-20", name: "J RODEM PTY LTD", detail: "20JUL26 890457 12:11:45", amount: -24.98, type: "normal" },
+  { date: "2026-07-21", name: "J RODEM PTY LTD", detail: "21JUL26 708571 12:34:00", amount: -18.89, type: "normal" },
+  { date: "2026-07-22", name: "J RODEM PTY LTD", detail: "22JUL26 375902 11:55:20", amount: -14.68, type: "normal" },
+  { date: "2026-07-23", name: "J RODEM PTY LTD", detail: "23JUL26 775933 12:56:18", amount: -14.68, type: "normal" },
+  { date: "2026-07-24", name: "J RODEM PTY LTD", detail: "24JUL26 828780 08:29:15", amount: -21.31, type: "normal" },
+  { date: "2026-07-24", name: "J RODEM PTY LTD", detail: "24JUL26 892809 11:38:14", amount: -14.68, type: "normal" },
+  { date: "2026-07-27", name: "J RODEM PTY LTD", detail: "27JUL26 968468 08:31:00", amount: -24.98, type: "normal" },
+  { date: "2026-07-27", name: "J RODEM PTY LTD", detail: "27JUL26 438777 11:47:28", amount: -18.89, type: "normal" },
+  { date: "2026-07-28", name: "J RODEM PTY LTD", detail: "28JUL26 877866 12:46:50", amount: -14.68, type: "normal" },
+  { date: "2026-07-29", name: "J RODEM PTY LTD", detail: "29JUL26 503294 08:53:02", amount: -24.98, type: "normal" },
+  { date: "2026-07-29", name: "J RODEM PTY LTD", detail: "29JUL26 320420 11:22:25", amount: -14.68, type: "normal" },
+  { date: "2026-07-30", name: "J RODEM PTY LTD", detail: "30JUL26 233559 08:51:50", amount: -21.31, type: "normal" },
+  { date: "2026-07-30", name: "J RODEM PTY LTD", detail: "30JUL26 452169 12:47:17", amount: -21.31, type: "normal" },
+  { date: "2026-07-31", name: "J RODEM PTY LTD", detail: "31JUL26 974768 08:49:31", amount: -21.31, type: "normal" },
+  { date: "2026-07-31", name: "J RODEM PTY LTD", detail: "31JUL26 680509 11:02:55", amount: -14.68, type: "normal" },
+  { date: "2026-08-04", name: "J RODEM PTY LTD", detail: "04AUG26 152030 11:40:45", amount: -21.31, type: "normal" },
+  { date: "2026-08-05", name: "J RODEM PTY LTD", detail: "05AUG26 274642 12:08:41", amount: -24.98, type: "normal" },
+  { date: "2026-08-06", name: "J RODEM PTY LTD", detail: "06AUG26 441753 11:46:18", amount: -14.68, type: "normal" },
+  { date: "2026-08-07", name: "J RODEM PTY LTD", detail: "07AUG26 990126 12:07:43", amount: -18.89, type: "normal" },
+  { date: "2026-08-10", name: "J RODEM PTY LTD", detail: "10AUG26 966475 11:06:05", amount: -14.68, type: "normal" },
+  { date: "2026-08-11", name: "J RODEM PTY LTD", detail: "11AUG26 750145 08:02:05", amount: -24.98, type: "normal" },
+  { date: "2026-08-11", name: "J RODEM PTY LTD", detail: "11AUG26 826495 11:47:06", amount: -14.68, type: "normal" },
+  { date: "2026-08-12", name: "J RODEM PTY LTD", detail: "12AUG26 679769 12:21:15", amount: -24.98, type: "normal" },
+  { date: "2026-08-13", name: "J RODEM PTY LTD", detail: "13AUG26 258506 08:05:11", amount: -18.89, type: "normal" },
+  { date: "2026-08-13", name: "J RODEM PTY LTD", detail: "13AUG26 317703 11:11:27", amount: -18.89, type: "normal" },
+  { date: "2026-08-14", name: "J RODEM PTY LTD", detail: "14AUG26 752506 12:38:38", amount: -18.89, type: "normal" },
+  { date: "2026-08-17", name: "J RODEM PTY LTD", detail: "17AUG26 397994 12:15:07", amount: -14.68, type: "normal" },
+  { date: "2026-08-18", name: "J RODEM PTY LTD", detail: "18AUG26 930094 08:47:41", amount: -18.89, type: "normal" },
+  { date: "2026-08-18", name: "J RODEM PTY LTD", detail: "18AUG26 135295 11:29:32", amount: -21.31, type: "normal" },
+  { date: "2026-08-19", name: "J RODEM PTY LTD", detail: "19AUG26 630569 12:23:48", amount: -18.89, type: "normal" },
+  { date: "2026-08-20", name: "J RODEM PTY LTD", detail: "20AUG26 979433 12:50:28", amount: -24.98, type: "normal" },
+  { date: "2026-08-21", name: "J RODEM PTY LTD", detail: "21AUG26 208701 11:38:07", amount: -21.31, type: "normal" },
+  { date: "2026-08-24", name: "J RODEM PTY LTD", detail: "24AUG26 390850 12:10:17", amount: -14.68, type: "normal" },
+  { date: "2026-08-25", name: "J RODEM PTY LTD", detail: "25AUG26 671860 11:02:10", amount: -24.98, type: "normal" },
+  { date: "2026-08-26", name: "J RODEM PTY LTD", detail: "26AUG26 215608 12:01:17", amount: -18.89, type: "normal" },
+  { date: "2026-08-27", name: "J RODEM PTY LTD", detail: "27AUG26 255588 11:21:11", amount: -18.89, type: "normal" },
+  { date: "2026-08-28", name: "J RODEM PTY LTD", detail: "28AUG26 170819 11:01:56", amount: -14.68, type: "normal" },
+  { date: "2026-08-31", name: "J RODEM PTY LTD", detail: "31AUG26 610600 08:07:27", amount: -24.98, type: "normal" },
+  { date: "2026-08-31", name: "J RODEM PTY LTD", detail: "31AUG26 762188 12:34:32", amount: -24.98, type: "normal" },
+  { date: "2026-09-01", name: "J RODEM PTY LTD", detail: "01SEP26 130582 12:01:33", amount: -21.31, type: "normal" },
+  { date: "2026-09-02", name: "J RODEM PTY LTD", detail: "02SEP26 541671 12:59:06", amount: -24.98, type: "normal" },
+  { date: "2026-09-03", name: "J RODEM PTY LTD", detail: "03SEP26 196223 11:01:17", amount: -14.68, type: "normal" },
+  { date: "2026-09-04", name: "J RODEM PTY LTD", detail: "04SEP26 816665 12:02:13", amount: -18.89, type: "normal" },
+  { date: "2026-09-07", name: "J RODEM PTY LTD", detail: "07SEP26 145982 08:01:18", amount: -21.31, type: "normal" },
+  { date: "2026-09-07", name: "J RODEM PTY LTD", detail: "07SEP26 779663 12:16:31", amount: -14.68, type: "normal" },
+  { date: "2026-09-08", name: "J RODEM PTY LTD", detail: "08SEP26 275377 11:20:27", amount: -21.31, type: "normal" },
+  { date: "2026-09-09", name: "J RODEM PTY LTD", detail: "09SEP26 997485 12:12:45", amount: -21.31, type: "normal" },
+  { date: "2026-09-10", name: "J RODEM PTY LTD", detail: "10SEP26 717905 11:30:23", amount: -24.98, type: "normal" },
+  { date: "2026-09-11", name: "J RODEM PTY LTD", detail: "11SEP26 898384 12:13:20", amount: -18.89, type: "normal" },
+  { date: "2026-09-14", name: "J RODEM PTY LTD", detail: "14SEP26 592811 08:03:45", amount: -14.68, type: "normal" },
+  { date: "2026-09-14", name: "J RODEM PTY LTD", detail: "14SEP26 659768 11:49:33", amount: -14.68, type: "normal" },
+  { date: "2026-09-15", name: "J RODEM PTY LTD", detail: "15SEP26 184461 11:06:35", amount: -18.89, type: "normal" },
+  { date: "2026-09-16", name: "J RODEM PTY LTD", detail: "16SEP26 168863 12:38:14", amount: -18.89, type: "normal" },
+  { date: "2026-09-17", name: "J RODEM PTY LTD", detail: "17SEP26 901965 11:39:20", amount: -24.98, type: "normal" },
+  { date: "2026-09-18", name: "J RODEM PTY LTD", detail: "18SEP26 631076 12:52:15", amount: -21.31, type: "normal" },
+  { date: "2026-09-21", name: "J RODEM PTY LTD", detail: "21SEP26 816912 08:12:33", amount: -21.31, type: "normal" },
+  { date: "2026-09-21", name: "J RODEM PTY LTD", detail: "21SEP26 230934 12:42:20", amount: -14.68, type: "normal" },
+  { date: "2026-09-22", name: "J RODEM PTY LTD", detail: "22SEP26 616058 08:30:31", amount: -21.31, type: "normal" },
+  { date: "2026-09-22", name: "J RODEM PTY LTD", detail: "22SEP26 688935 11:42:34", amount: -24.98, type: "normal" },
+  { date: "2026-09-23", name: "J RODEM PTY LTD", detail: "23SEP26 719329 12:34:59", amount: -24.98, type: "normal" },
+  { date: "2026-09-24", name: "J RODEM PTY LTD", detail: "24SEP26 139633 12:48:19", amount: -18.89, type: "normal" },
+  { date: "2026-09-25", name: "J RODEM PTY LTD", detail: "25SEP26 541297 08:19:59", amount: -21.31, type: "normal" },
+  { date: "2026-09-25", name: "J RODEM PTY LTD", detail: "25SEP26 221988 12:10:44", amount: -21.31, type: "normal" },
+  { date: "2026-09-28", name: "J RODEM PTY LTD", detail: "28SEP26 853064 11:08:49", amount: -24.98, type: "normal" },
+  { date: "2026-09-29", name: "J RODEM PTY LTD", detail: "29SEP26 415943 08:31:31", amount: -21.31, type: "normal" },
+  { date: "2026-09-29", name: "J RODEM PTY LTD", detail: "29SEP26 629035 12:45:44", amount: -24.98, type: "normal" },
+  { date: "2026-09-30", name: "J RODEM PTY LTD", detail: "30SEP26 132126 08:04:01", amount: -18.89, type: "normal" },
+  { date: "2026-09-30", name: "J RODEM PTY LTD", detail: "30SEP26 633212 12:35:39", amount: -21.31, type: "normal" },
+  { date: "2026-10-01", name: "J RODEM PTY LTD", detail: "01OCT26 508463 12:03:01", amount: -14.68, type: "normal" },
+  { date: "2026-10-02", name: "J RODEM PTY LTD", detail: "02OCT26 258487 12:42:40", amount: -18.89, type: "normal" },
+  { date: "2026-07-17", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "17JUL26 628786 13:17:12", amount: -19.37, type: "normal" },
+  { date: "2026-07-23", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "23JUL26 513119 12:37:14", amount: -20.73, type: "normal" },
+  { date: "2026-07-24", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "24JUL26 456689 13:03:12", amount: -32.55, type: "normal" },
+  { date: "2026-07-27", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "27JUL26 220108 13:07:40", amount: -35.9, type: "normal" },
+  { date: "2026-07-30", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "30JUL26 328646 12:59:36", amount: -23.37, type: "normal" },
+  { date: "2026-07-31", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "31JUL26 689973 12:26:11", amount: -15.38, type: "normal" },
+  { date: "2026-08-04", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "04AUG26 795771 12:10:31", amount: -36.94, type: "normal" },
+  { date: "2026-08-07", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "07AUG26 755112 12:16:43", amount: -33.46, type: "normal" },
+  { date: "2026-08-10", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "10AUG26 616392 12:56:10", amount: -36.43, type: "normal" },
+  { date: "2026-08-12", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "12AUG26 815727 12:54:35", amount: -24.63, type: "normal" },
+  { date: "2026-08-14", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "14AUG26 935777 12:15:57", amount: -15.23, type: "normal" },
+  { date: "2026-08-19", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "19AUG26 132019 12:56:32", amount: -17.02, type: "normal" },
+  { date: "2026-08-20", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "20AUG26 648797 12:27:32", amount: -25.13, type: "normal" },
+  { date: "2026-08-21", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "21AUG26 153915 12:54:59", amount: -34.29, type: "normal" },
+  { date: "2026-08-26", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "26AUG26 492555 12:59:12", amount: -37.69, type: "normal" },
+  { date: "2026-08-28", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "28AUG26 894339 12:30:28", amount: -26.8, type: "normal" },
+  { date: "2026-08-31", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "31AUG26 899722 13:24:03", amount: -31.13, type: "normal" },
+  { date: "2026-09-03", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "03SEP26 451576 13:28:49", amount: -21.01, type: "normal" },
+  { date: "2026-09-07", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "07SEP26 196336 12:34:09", amount: -22.58, type: "normal" },
+  { date: "2026-09-10", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "10SEP26 883146 12:48:33", amount: -33.15, type: "normal" },
+  { date: "2026-09-16", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "16SEP26 305630 12:37:31", amount: -35.44, type: "normal" },
+  { date: "2026-09-17", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "17SEP26 955440 12:44:32", amount: -30.33, type: "normal" },
+  { date: "2026-09-23", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "23SEP26 811963 12:49:21", amount: -19.07, type: "normal" },
+  { date: "2026-09-25", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "25SEP26 489453 12:41:31", amount: -37.04, type: "normal" },
+  { date: "2026-09-28", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "28SEP26 253971 13:29:41", amount: -37.8, type: "normal" },
+  { date: "2026-09-29", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "29SEP26 915223 12:30:10", amount: -28.01, type: "normal" },
+  { date: "2026-10-01", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "01OCT26 121011 12:20:46", amount: -18.55, type: "normal" },
+  // Fortnightly 500 transfers
+  { date: "2026-07-16", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-07-30", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-08-13", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-08-27", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-09-10", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-09-24", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-10-06", name: "READING CINEMAS", detail: "03OCT26 ATMA896 20:32:52", amount: -8.00, type: "normal" },
+  { date: "2026-10-05", name: "SQ *LIFE 4 CUTS X KPOP C", detail: "03OCT26 ATMA896 17:18:30", amount: -10.16, type: "normal" },
+  { date: "2026-10-05", name: "MINGLEY PTY LTD", detail: "02OCT26 ATMA896 18:55:30", amount: -45.99, type: "normal" },
+  { date: "2026-10-05", name: "APPLE.COM/BILL", detail: "01OCT26 ATMA896 17:03:50", amount: -30.00, type: "normal" },
+  { date: "2026-10-05", name: "BP CONNECT 9562", detail: "01OCT26 ATMA896 21:56:12", amount: -4.95, type: "normal" },
+  { date: "2026-07-30", name: "SQ *PLAY COFFEE LIDCOMBE", detail: "29JUL26 ATMA896 08:28:12", amount: -7.06, type: "normal" },
+  { date: "2026-07-30", name: "APPLE.COM/BILL", detail: "28JUL26 ATMA896 21:16:16", amount: -30.00, type: "normal" },
+  { date: "2026-07-30", name: "APPLE.COM/BILL", detail: "28JUL26 ATMA896 21:11:47", amount: -14.99, type: "normal" },
+  { date: "2026-07-31", name: "TATTS ONLINE PTY LTD", detail: "29JUL26 ATMA896 22:10:00", amount: -19.40, type: "normal" },
+  { date: "2026-07-31", name: "TATTS ONLINE PTY LTD", detail: "29JUL26 ATMA896 22:20:07", amount: -30.70, type: "normal" },
+  { date: "2026-08-04", name: "NATIONWIDE PARKING", detail: "01AUG26 ATMA896 13:19:58", amount: -8.16, type: "normal" },
+  { date: "2026-08-03", name: "HAEYOOM PTY LTD", detail: "01AUG26 ATMA896 15:38:43", amount: -11.00, type: "normal" },
+  { date: "2026-08-03", name: "J RODEM PTY LTD", detail: "30JUL26 ATMA896 09:33:37", amount: -6.80, type: "normal" },
+  { date: "2026-09-23", name: "INTERNATIONAL TRANSFER", detail: "RTP", amount: -12000.00, type: "normal" },
+  { date: "2026-10-07", name: "ATM WITHDRAWAL", detail: "07OCT26 ATMA896 20:37:53", amount: -1003.50, type: "normal" },
+];
+
+const DATA_VERSION = 'v40a';
+if (localStorage.getItem('txVersion') !== DATA_VERSION) {
+  localStorage.removeItem('txData');
+  localStorage.setItem('txVersion', DATA_VERSION);
+}
+let transactions = JSON.parse(localStorage.getItem('txData') || 'null') || INITIAL;
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+
+
+
+
+function openMainScreen() {
+  document.getElementById('accountsScreen').style.display = 'none';
+}
+
+function openPaySomeone() {
+  var s = document.getElementById('paySomeoneScreen');
+  s.style.display = 'flex';
+  s.style.flexDirection = 'column';
+}
+function openPayTo() {
+  var s = document.getElementById('payToScreen');
+  s.style.display = 'flex';
+  s.style.flexDirection = 'column';
+}
+
+function openFromScreen() {
+  var s = document.getElementById('fromScreen');
+  s.style.display = 'flex';
+  s.style.flexDirection = 'column';
+}
+function closeFromScreen() {
+  document.getElementById('fromScreen').style.display = 'none';
+}
+
+function closeShareSheet(e) {
+  if (!e || e.target === document.getElementById('shareOverlay')) {
+    document.getElementById('shareOverlay').classList.remove('open');
+  }
+}
+
+function extractTime(detail) {
+  // Match time pattern HH:MM:SS at end of detail string
+  var m = detail.match(/(\d{2}:\d{2}:\d{2})$/);
+  return m ? m[1] : null;
+}
+
+
+function render() {
+  const list = document.getElementById('txList');
+  // Sort newest first
+  const sorted = [...transactions].sort((a, b) => b.date.localeCompare(a.date));
+  
+  // Group by date
+  const groups = {};
+  sorted.forEach(tx => {
+    if (!groups[tx.date]) groups[tx.date] = [];
+    groups[tx.date].push(tx);
+  });
+
+  list.innerHTML = '';
+  Object.keys(groups).sort((a,b) => b.localeCompare(a)).forEach(date => {
+    // Skip cutoff marker from date headers if it's the only item
+    const txsInGroup = groups[date].filter(t => t.type !== 'cutoff');
+    const hasCutoff = groups[date].some(t => t.type === 'cutoff');
+
+    if (txsInGroup.length > 0) {
+      const header = document.createElement('div');
+      header.className = 'date-group-header';
+      header.textContent = formatDate(date);
+      list.appendChild(header);
+
+      txsInGroup.forEach((tx, i) => {
+        const item = document.createElement('div');
+        item.className = 'tx-item';
+
+        const isPositive = tx.amount > 0;
+
+        item.innerHTML = `
+          <div class="tx-info">
+            <div class="tx-name">${tx.name}</div>
+            <div class="tx-detail">${tx.detail}</div>
+          </div>
+          <div class="tx-right">
+            <div class="tx-amount ${isPositive ? 'positive' : ''}">${isPositive ? '+' : '-'}${Math.abs(tx.amount).toFixed(2)} AUD</div>
+            ${tx.type === 'pending' ? '<div class="pending-badge">⏱ Pending</div>' : ''}
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    if (hasCutoff) {
+      const msg = document.createElement('div');
+      msg.className = 'cutoff-msg';
+      msg.textContent = 'Transactions beyond this date are not displayed here. Please refer to your statements from HSBC\'s Online Banking.';
+      list.appendChild(msg);
+    }
+  });
+
+  // Update balance display
+  const total = transactions.reduce((s, t) => s + t.amount, 0);
+  
+}
+
+
+
+function openSearch() {
+  document.getElementById('searchScreen').style.display = 'flex';
+  document.getElementById('searchScreen').style.flexDirection = 'column';
+  setTimeout(() => document.getElementById('searchInput').focus(), 100);
+  runSearch();
+}
+
+function closeSearch() {
+  document.getElementById('searchScreen').style.display = 'none';
+  document.getElementById('searchInput').value = '';
+}
+
+function runSearch() {
+  var query = document.getElementById('searchInput').value.trim().toLowerCase();
+  var resultsEl = document.getElementById('searchResults');
+
+  var filtered = transactions.filter(function(tx) {
+    if (tx.type === 'cutoff') return false;
+    if (!query) return true;
+    return tx.name.toLowerCase().indexOf(query) !== -1 ||
+           tx.detail.toLowerCase().indexOf(query) !== -1;
+  });
+
+  if (filtered.length === 0) {
+    resultsEl.innerHTML = '<div class="search-empty">No transactions found.</div>';
+    return;
+  }
+
+  filtered.sort(function(a, b) { return b.date.localeCompare(a.date); });
+
+  var groups = {};
+  filtered.forEach(function(tx) {
+    if (!groups[tx.date]) groups[tx.date] = [];
+    groups[tx.date].push(tx);
+  });
+
+  resultsEl.innerHTML = '';
+  Object.keys(groups).sort(function(a, b) { return b.localeCompare(a); }).forEach(function(date) {
+    var header = document.createElement('div');
+    header.className = 'date-group-header';
+    header.textContent = formatDate(date);
+    resultsEl.appendChild(header);
+
+    groups[date].sort(function(a, b) {
+      var aTime = extractTime(a.detail);
+      var bTime = extractTime(b.detail);
+      if (aTime && bTime) return bTime.localeCompare(aTime);
+      if (aTime && !bTime) return -1;
+      if (!aTime && bTime) return 1;
+      return b.amount - a.amount;
+    });
+
+    groups[date].forEach(function(tx) {
+      var isPos = tx.amount > 0;
+      var item = document.createElement('div');
+      item.className = 'tx-item';
+      var amtClass = isPos ? 'tx-amount positive' : 'tx-amount';
+      var amtSign = isPos ? '+' : '-';
+      var pending = tx.type === 'pending' ? '<div class="pending-badge">⏱ Pending</div>' : '';
+      item.innerHTML = '<div class="tx-info"><div class="tx-name">' + tx.name + '</div><div class="tx-detail">' + tx.detail + '</div></div><div class="tx-right"><div class="' + amtClass + '">' + amtSign + Math.abs(tx.amount).toFixed(2) + ' AUD</div>' + pending + '</div>';
+      resultsEl.appendChild(item);
+    });
+  });
+}
+
+function showScreen(screen) {
+  const mm = document.getElementById('moveMoneyScreen');
+  const sp = document.getElementById('supportScreen');
+  const ac = document.getElementById('accountsScreen');
+  mm.style.display = 'none';
+  sp.style.display = 'none';
+  ac.style.display = 'none';
+  if (screen === 'moveMoney') {
+    mm.style.display = 'flex';
+    mm.style.flexDirection = 'column';
+  } else if (screen === 'support') {
+    sp.style.display = 'flex';
+    sp.style.flexDirection = 'column';
+  }
+}
+
+render();
+</script>
+
+<!-- MOVE MONEY SCREEN -->
+<div id="moveMoneyScreen" style="display:none; position:fixed; inset:0; background:#efefef; z-index:50; max-width:430px; margin:0 auto; flex-direction:column;">
+  <!-- Red header -->
+  <div style="background:#DB0011; padding: 50px 20px 24px; position:relative; flex-shrink:0;">
+    <!-- HSBC logo triangle top-right -->
+    <div style="position:absolute; top:0; right:0; width:100px; height:90px; overflow:hidden;">
+      <svg viewBox="0 0 100 90" style="width:100%; height:100%;">
+        <polygon points="100,0 100,90 0,0" fill="#b0000e" opacity="0.5"/>
+        <polygon points="100,0 100,90 50,0" fill="#c0000f" opacity="0.4"/>
+      </svg>
+    </div>
+    <!-- Profile icon -->
+    <div style="position:absolute; top:12px; right:16px; width:42px; height:42px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+    <h1 style="color:#fff; font-size:28px; font-weight:700; margin-top:8px; font-family:-apple-system,sans-serif;">Move Money</h1>
+  </div>
+
+  <!-- Menu list -->
+  <div style="margin:20px 16px 0; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+    <!-- Transfer between accounts -->
+    <div class="mm-item" onclick="openFromScreen()">
+      <div class="mm-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+          <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+        </svg>
+      </div>
+      <span class="mm-label">Transfer between accounts</span>
+      <svg class="mm-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="mm-divider"></div>
+    <!-- Pay someone -->
+    <div class="mm-item" onclick="openFromScreen()">
+      <div class="mm-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 12 8"/>
+          <line x1="12" y1="8" x2="12" y2="16"/><line x1="12" y1="8" x2="12" y2="8"/>
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12"/><line x1="12" y1="6" x2="12" y2="6"/>
+        </svg>
+      </div>
+      <span class="mm-label">Pay someone</span>
+      <svg class="mm-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="mm-divider"></div>
+    <!-- Send money internationally -->
+    <div class="mm-item" onclick="openPaySomeone()">
+      <div class="mm-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+      </div>
+      <span class="mm-label">Send money internationally</span>
+      <svg class="mm-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="mm-divider"></div>
+    <!-- Pay with BPAY -->
+    <div class="mm-item" onclick="openFromScreen()">
+      <div class="mm-icon" style="background:#1c1c1e; border-radius:6px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <span style="color:#fff; font-size:9px; font-weight:800; letter-spacing:-0.5px; font-family:sans-serif;">BPAY</span>
+      </div>
+      <span class="mm-label">Pay with BPAY</span>
+      <svg class="mm-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="mm-divider"></div>
+    <!-- PayTo -->
+    <div class="mm-item" onclick="openPayTo()">
+      <div class="mm-icon" style="background:#1c1c1e; border-radius:6px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <span style="color:#fff; font-size:9px; font-weight:800; font-family:sans-serif;">PayTo</span>
+      </div>
+      <span class="mm-label">PayTo</span>
+      <svg class="mm-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav" style="position:absolute; bottom:0; width:100%; background:#fff;">
+    <div class="nav-item" onclick="showScreen('main')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <span>Accounts</span>
+    </div>
+    <div class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      <span>Move Money</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('support')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Support</span>
+    </div>
+  </div>
+</div>
+
+<!-- SUPPORT SCREEN -->
+<div id="supportScreen" style="display:none; position:fixed; inset:0; background:#efefef; z-index:50; max-width:430px; margin:0 auto; flex-direction:column;">
+  <!-- Red header -->
+  <div style="background:#DB0011; padding: 50px 20px 24px; position:relative; flex-shrink:0;">
+    <div style="position:absolute; top:0; right:0; width:100px; height:90px; overflow:hidden;">
+      <svg viewBox="0 0 100 90" style="width:100%; height:100%;">
+        <polygon points="100,0 100,90 0,0" fill="#b0000e" opacity="0.5"/>
+        <polygon points="100,0 100,90 50,0" fill="#c0000f" opacity="0.4"/>
+      </svg>
+    </div>
+    <div style="position:absolute; top:12px; right:16px; width:42px; height:42px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+    <h1 style="color:#fff; font-size:28px; font-weight:700; margin-top:8px; font-family:-apple-system,sans-serif;">Support</h1>
+  </div>
+
+  <!-- Menu list -->
+  <div style="margin:20px 16px 0; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+    <!-- Chat with us -->
+    <div class="mm-item">
+      <div class="mm-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          <line x1="9" y1="10" x2="9" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="15" y1="10" x2="15" y2="10"/>
+        </svg>
+      </div>
+      <span class="mm-label">Chat with us</span>
+      <svg class="mm-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="mm-divider"></div>
+    <!-- Contact us -->
+    <div class="mm-item">
+      <div class="mm-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.63 3.37 2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.73a16 16 0 0 0 6 6l.82-.82a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </div>
+      <span class="mm-label">Contact us</span>
+      <svg class="mm-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="mm-divider"></div>
+    <!-- Messages -->
+    <div class="mm-item">
+      <div class="mm-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <polyline points="2,4 12,13 22,4"/>
+        </svg>
+      </div>
+      <span class="mm-label">Messages</span>
+      <svg class="mm-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="mm-divider"></div>
+    <!-- Call Verify -->
+    <div class="mm-item">
+      <div class="mm-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+      </div>
+      <span class="mm-label">Call Verify</span>
+      <svg class="mm-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="mm-divider"></div>
+    <!-- Financial hardship assistance -->
+    <div class="mm-item">
+      <div class="mm-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <span class="mm-label">Financial hardship assistance</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+        <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/><polyline points="21 13 21 20 3 20 3 4 10 4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav" style="position:absolute; bottom:0; width:100%; background:#fff;">
+    <div class="nav-item" onclick="showScreen('main')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <span>Accounts</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('moveMoney')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      <span>Move Money</span>
+    </div>
+    <div class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Support</span>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH SCREEN -->
+<div id="searchScreen">
+  <div class="search-top">
+    <div class="search-top-row">
+      <span class="search-close-btn" onclick="closeSearch()">✕</span>
+      <div style="flex:1; text-align:center;">
+        <div class="search-account-title">Day to Day Account</div>
+        <div class="search-account-sub">346021 124045412</div>
+      </div>
+      <span style="width:36px;"></span>
+    </div>
+    <div class="search-bar-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input id="searchInput" type="text" placeholder="Search" oninput="runSearch()" autofocus/>
+    </div>
+  </div>
+  <div class="search-divider"></div>
+  <div id="searchResults"></div>
+</div>
+
+<!-- SHARE SHEET -->
+<div id="shareOverlay" onclick="closeShareSheet(event)">
+  <div class="share-sheet">
+    <div class="share-card">
+      <div class="share-card-title">Share your account details</div>
+      <div class="share-option">BSB number</div>
+      <div class="share-option">Account number</div>
+      <div class="share-option">BSB &amp; account number</div>
+      <div class="share-option">International account details</div>
+    </div>
+    <div class="share-cancel" onclick="closeShareSheet()">Cancel</div>
+  </div>
+</div>
+
+<!-- FROM SCREEN -->
+<div id="fromScreen">
+  <div class="from-top">
+    <span class="from-back" onclick="closeFromScreen()">‹</span>
+    <div class="from-title">From</div>
+  </div>
+  <div class="from-search-wrap">
+    <div class="from-search-wrap-inner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="from-search" type="text" placeholder="Search"/>
+    </div>
+  </div>
+  <div class="from-account-item">
+    <div class="from-account-info">
+      <div class="from-account-name">Day to Day Account</div>
+      <div class="from-account-num">346021 124045412</div>
+    </div>
+    <div class="from-account-right">
+      <span class="from-account-bal">229.74 AUD</span>
+      <div class="from-radio"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAY SOMEONE / SEND INTERNATIONALLY SCREEN -->
+<div id="paySomeoneScreen">
+  <div class="ps-top">
+    <span class="ps-back" onclick="document.getElementById('paySomeoneScreen').style.display='none'">‹</span>
+    <div class="ps-title">Choose someone to pay</div>
+    <span style="width:28px;"></span>
+  </div>
+  <div class="ps-new-item">
+    <div class="ps-new-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+    <span class="ps-new-label">Pay someone new</span>
+  </div>
+  <div class="ps-alpha-header">M</div>
+  <div class="ps-contact-item">
+    <div>
+      <div class="ps-contact-name">Myung Jae Kim</div>
+      <div class="ps-contact-sub">1 account</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </div>
+  <div class="ps-alpha-header">Y</div>
+  <div class="ps-contact-item">
+    <div>
+      <div class="ps-contact-name">YOUNG IN KIM</div>
+      <div class="ps-contact-sub">1 account</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c0c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </div>
+</div>
+
+<!-- PAYTO SCREEN -->
+<div id="payToScreen">
+  <div class="ps-top">
+    <span class="ps-back" onclick="document.getElementById('payToScreen').style.display='none'">‹</span>
+    <div class="ps-title">PayTo agreements</div>
+    <div class="ps-help">?</div>
+  </div>
+  <div class="pt-search-wrap">
+    <div class="pt-search-inner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="pt-search-input" type="text" placeholder="Search"/>
+    </div>
+  </div>
+  <div class="pt-tabs">
+    <div class="pt-tab active">Active</div>
+    <div class="pt-tab">Inactive</div>
+  </div>
+  <div class="pt-empty">
+    <div class="pt-info-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round">
+        <line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/>
+        <circle cx="12" cy="12" r="10"/>
+      </svg>
+    </div>
+    <div class="pt-empty-text">No active agreements at this time.</div>
+  </div>
+  <div class="pt-get-help">
+    <button class="pt-get-help-btn">Get help</button>
+  </div>
+</div>
+
+<!-- ACCOUNTS SCREEN -->
+<div id="accountsScreen">
+  <!-- Red header -->
+  <div class="acc-header">
+    <div class="acc-header-top">
+      <svg viewBox="0 0 120 100" style="width:100%;height:100%;">
+        <polygon points="120,0 120,100 0,0" fill="#b0000e" opacity="0.5"/>
+        <polygon points="120,0 120,100 60,0" fill="#c0000f" opacity="0.4"/>
+      </svg>
+    </div>
+    <div class="acc-header-icons">
+      <div class="acc-icon-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <div class="acc-notif-dot"></div>
+      </div>
+      <div class="acc-icon-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+    </div>
+    <div class="acc-title">Accounts</div>
+  </div>
+
+  <div class="acc-body">
+    <!-- Outage banner -->
+    <div class="acc-outage" id="outageBanner">
+      <div class="acc-outage-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div class="acc-outage-text">
+        <div class="acc-outage-title">Upcoming outage</div>
+        <div class="acc-outage-desc">Sun 11 Oct 2026, 10 AM – 4 PM AEDT, international payments won't be available.</div>
+        <div class="acc-outage-gotit" onclick="document.getElementById('outageBanner').style.display='none'">Got it</div>
+      </div>
+      <span class="acc-outage-close" onclick="document.getElementById('outageBanner').style.display='none'">✕</span>
+    </div>
+
+    <!-- Day to Day Account card -->
+    <div class="acc-card" onclick="openMainScreen()">
+      <div class="acc-card-top">
+        <div class="acc-card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DB0011" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <line x1="2" y1="10" x2="22" y2="10"/>
+            <line x1="6" y1="15" x2="10" y2="15"/>
+          </svg>
+        </div>
+        <div>
+          <div class="acc-card-name">Day to Day Account</div>
+          <div class="acc-card-num">346021 124045412</div>
+        </div>
+      </div>
+      <div class="acc-card-row" style="border-top:none;">
+        <span class="acc-card-label">Available:</span>
+        <span class="acc-card-value">229.74 AUD</span>
+      </div>
+      <div class="acc-card-row" style="border-top:none;">
+        <span class="acc-card-label">Balance:</span>
+        <span class="acc-card-value">229.74 AUD</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav" style="background:#fff;">
+    <div class="nav-item active" onclick="document.getElementById('accountsScreen').style.display='flex';document.getElementById('accountsScreen').style.flexDirection='column';document.getElementById('moveMoneyScreen').style.display='none';document.getElementById('supportScreen').style.display='none';">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <span>Accounts</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('moveMoney')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      <span>Move Money</span>
+    </div>
+    <div class="nav-item" onclick="showScreen('support')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Support</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
