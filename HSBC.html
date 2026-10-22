@@ -684,7 +684,7 @@
   <span class="back">‹</span>
   <h2>Day to Day Account</h2>
   <div class="acct-number"><span>346021&#8203;124045412</span></div>
-  <div class="balance" id="balanceDisplay">229.74 AUD</div>
+  <div class="balance" id="balanceDisplay">638.30 AUD</div>
   <span class="share" onclick="document.getElementById('shareOverlay').classList.add('open')" style="cursor:pointer;">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
@@ -1202,9 +1202,25 @@ const INITIAL = [
   { date: "2026-08-03", name: "J RODEM PTY LTD", detail: "30JUL26 ATMA896 09:33:37", amount: -6.80, type: "normal" },
   { date: "2026-09-23", name: "INTERNATIONAL TRANSFER", detail: "RTP", amount: -12000.00, type: "normal" },
   { date: "2026-10-07", name: "ATM WITHDRAWAL", detail: "07OCT26 ATMA896 20:37:53", amount: -1003.50, type: "normal" },
+  { date: "2026-10-08", name: "TRANSFER", detail: "RTP", amount: 500.00, type: "income" },
+  { date: "2026-10-09", name: "J RODEM PTY LTD", detail: "09OCT26 670724 13:23:05", amount: -37.8, type: "normal" },
+  { date: "2026-10-09", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "09OCT26 ATMA896 13:30:40", amount: -22.72, type: "normal" },
+  { date: "2026-10-13", name: "J RODEM PTY LTD", detail: "13OCT26 606699 08:37:03", amount: -35.6, type: "normal" },
+  { date: "2026-10-13", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "13OCT26 ATMA896 13:09:32", amount: -37.35, type: "normal" },
+  { date: "2026-10-14", name: "J RODEM PTY LTD", detail: "14OCT26 790220 12:07:09", amount: -21.41, type: "normal" },
+  { date: "2026-10-15", name: "J RODEM PTY LTD", detail: "15OCT26 134201 08:19:54", amount: -28.55, type: "normal" },
+  { date: "2026-10-16", name: "J RODEM PTY LTD", detail: "16OCT26 592670 13:30:08", amount: -32.88, type: "normal" },
+  { date: "2026-10-16", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "16OCT26 ATMA896 13:30:13", amount: -17.35, type: "normal" },
+  { date: "2026-10-19", name: "J RODEM PTY LTD", detail: "19OCT26 188250 12:34:28", amount: -29.53, type: "normal" },
+  { date: "2026-10-19", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "19OCT26 ATMA896 12:30:01", amount: -15.96, type: "normal" },
+  { date: "2026-10-20", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "20OCT26 ATMA896 13:16:18", amount: -37.9, type: "normal" },
+  { date: "2026-10-21", name: "J RODEM PTY LTD", detail: "21OCT26 886062 08:23:27", amount: -10.47, type: "normal" },
+  { date: "2026-10-21", name: "IREA SERVICE ST PTY LT LIDCOMBE AUS", detail: "21OCT26 ATMA896 12:47:41", amount: -24.44, type: "normal" },
+  { date: "2026-10-22", name: "TRANSFER", detail: "Myung Jae", amount: 500.00, type: "income" },
+  { date: "2026-10-22", name: "WOOLWORTHS/GRAF AVE & MA", detail: "20OCT26 ATMA896 19:37:56", amount: -60.00, type: "normal" },
 ];
 
-const DATA_VERSION = 'v40a';
+const DATA_VERSION = 'v40c';
 if (localStorage.getItem('txVersion') !== DATA_VERSION) {
   localStorage.removeItem('txData');
   localStorage.setItem('txVersion', DATA_VERSION);
@@ -1655,7 +1671,7 @@ render();
       <div class="from-account-num">346021 124045412</div>
     </div>
     <div class="from-account-right">
-      <span class="from-account-bal">229.74 AUD</span>
+      <span class="from-account-bal">638.30 AUD</span>
       <div class="from-radio"></div>
     </div>
   </div>
@@ -1787,11 +1803,11 @@ render();
       </div>
       <div class="acc-card-row" style="border-top:none;">
         <span class="acc-card-label">Available:</span>
-        <span class="acc-card-value">229.74 AUD</span>
+        <span class="acc-card-value">638.30 AUD</span>
       </div>
       <div class="acc-card-row" style="border-top:none;">
         <span class="acc-card-label">Balance:</span>
-        <span class="acc-card-value">229.74 AUD</span>
+        <span class="acc-card-value">638.30 AUD</span>
       </div>
     </div>
   </div>
