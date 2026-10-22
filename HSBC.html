@@ -681,7 +681,7 @@
 </div>
 
 <div class="top-bar">
-  <span class="back">‹</span>
+  <span class="back" onclick="showScreen('accounts')" style="cursor:pointer;">‹</span>
   <h2>Day to Day Account</h2>
   <div class="acct-number"><span>346021&#8203;124045412</span></div>
   <div class="balance" id="balanceDisplay">638.30 AUD</div>
@@ -1410,6 +1410,9 @@ function showScreen(screen) {
   } else if (screen === 'support') {
     sp.style.display = 'flex';
     sp.style.flexDirection = 'column';
+  } else if (screen === 'accounts') {
+    ac.style.display = 'flex';
+    ac.style.flexDirection = 'column';
   }
 }
 
